@@ -1,7 +1,9 @@
 """Bounded model-selected HTTP workflows with a feature-matched contract ablation.
 
-Confirmatory execution requires pinned access, explicit spend approval, and a
-code/task/prompt lock. Scripted and mock rows can never enter live analysis.
+Development execution uses only the four development fixtures and is kept
+separate from the frozen confirmatory matrix. Confirmatory execution requires
+pinned access, explicit spend approval, and a code/task/prompt lock. Scripted,
+mock, and development rows can never enter confirmatory live analysis.
 """
 from __future__ import annotations
 import argparse, hashlib, json, os, random, tempfile, threading, time, platform, math
@@ -66,8 +68,9 @@ class LiveModel:
         self.last_call={}
         body={'model':self.model_id,'messages':messages,'tools':[TOOL],
               'tool_choice':{'type':'function','function':{'name':'execute_service_action'}},
-              'temperature':self.protocol['temperature'],
               self.spec.get('output_token_parameter','max_tokens'):self.protocol['max_output_tokens']}
+        temperature=self.spec.get('temperature',self.protocol['temperature'])
+        if temperature is not None:body['temperature']=temperature
         # Providers do not all expose the same reasoning controls. Keep the
         # common tool protocol fixed, but apply only the frozen, per-model
         # options validated on development tasks (for example,
@@ -98,10 +101,13 @@ class LiveModel:
         if usage['completion_tokens']>self.protocol['max_output_tokens'] or usage['prompt_tokens']>self.protocol['max_prompt_bytes']:
             raise ProviderFailure('Usage exceeds approved per-call billed-token bound')
         try:
-            calls=data['choices'][0]['message']['tool_calls']
-            if len(calls)!=1 or calls[0]['function']['name']!='execute_service_action': raise ValueError()
-            action=json.loads(calls[0]['function']['arguments'])
+            message=data['choices'][0]['message'];calls=message['tool_calls'];call=calls[0]
+            if (not isinstance(message,dict) or len(calls)!=1 or call['function']['name']!='execute_service_action'
+                    or not isinstance(call.get('id'),str) or not call['id']):raise ValueError()
+            action=json.loads(call['function']['arguments'])
         except (KeyError,IndexError,TypeError,ValueError): raise ProviderFailure('Malformed single-tool-call response') from None
+        self.last_call['tool_call_id']=call['id']
+        if 'content' in message:self.last_call['assistant_content']=message['content']
         return action,self.last_call
 
 class ScriptedModel:
@@ -260,18 +266,25 @@ def run_episode(base,task,policy,model,protocol):
             events.append({'turn':turn,'action':None,'provider_failure':error,'model':meta});break
         except Exception as exc:status='adapter_failure';error=type(exc).__name__;break
         real_responses+=int(model.is_live);tokens+=token_total(meta)
+        validation_error=episode.validate(action)
+        gate_reason=None if validation_error else episode.gate(action)
+        executed_action=action if validation_error is None and gate_reason is None else None
         try:observation=episode.execute(action)
         except BudgetStop as exc:status='tool_limit';error=str(exc);break
         except (OSError,ValueError,KeyError) as exc:status='service_failure';error=type(exc).__name__;break
-        event={'turn':turn,'action':action,'observation':observation,'model':meta};events.append(event)
-        call_id=f'turn-{turn}'
-        messages.append({'role':'assistant','tool_calls':[{'id':call_id,'type':'function','function':{'name':'execute_service_action','arguments':canonical(action)}}]})
+        event={'turn':turn,'proposed_action':action,'validation_error':validation_error,
+               'gate_decision':{'outcome':'blocked' if gate_reason else 'allowed' if not validation_error else 'not_evaluated','reason':gate_reason},
+               'executed_action':executed_action,'observation':observation,'model':meta};events.append(event)
+        call_id=meta.get('tool_call_id',f'turn-{turn}')
+        assistant={'role':'assistant','tool_calls':[{'id':call_id,'type':'function','function':{'name':'execute_service_action','arguments':canonical(action)}}]}
+        if 'assistant_content' in meta:assistant['content']=meta['assistant_content']
+        messages.append(assistant)
         messages.append({'role':'tool','tool_call_id':call_id,'content':canonical(observation)})
         if episode.finished:status='finished';break
     state=episode.snapshot();verdict=episode.judge(state)
     return {'task_id':task['task_id'],'service':task['service'],'fault':task['fault'],'variant':task['variant'],
             'policy':policy,'model_id':model.model_id,'model_class':getattr(model,'spec',{}).get('class','test'),
-            'evidence_class':'live_e2e_local_services' if model.is_live else 'ci_non_live',
+            'evidence_class':getattr(model,'evidence_class','live_e2e_local_services' if model.is_live else 'ci_non_live'),
             'status':status,'error':error,'model_responses':real_responses,'turns':len(events),'tool_calls':episode.calls,
             'total_tokens':tokens,'wall_ms':round((time.perf_counter()-started)*1000,3),
             **verdict,'trace_sha256':digest({'events':events,'state':state}),'events':events,'state':state}
@@ -284,7 +297,7 @@ def load_tasks(path,split):
     if not tasks:raise ValueError('Empty task split')
     return tasks
 
-def validate_access(access,require_credentials=False):
+def validate_access(access,require_credentials=False,require_confirmatory_guarantees=True):
     models=access.get('models',[])
     if len(models)!=2 or {m.get('class') for m in models}!={'hosted','open_weight'}:raise ValueError('Exactly one hosted and one open-weight model required')
     for m in models:
@@ -295,8 +308,11 @@ def validate_access(access,require_credentials=False):
         if parsed.scheme!='https' and not local:raise ValueError('Remote endpoint requires HTTPS')
         if require_credentials and not local and not os.environ.get(m.get('api_key_env','')):raise ValueError('Missing '+m.get('api_key_env','API key variable'))
         if any(type(m.get(k)) not in (int,float) or not math.isfinite(m[k]) or m[k]<0 for k in ('input_usd_per_million','output_usd_per_million')):raise ValueError('Supply verified billing rates, including reasoning token treatment')
-        if not m.get('byte_token_upper_bound_verified',False) or not m.get('output_billing_ceiling_verified',False):raise ValueError('Verify tokenizer byte upper bound and billed-output cap before live execution')
+        if require_confirmatory_guarantees and (not m.get('byte_token_upper_bound_verified',False) or not m.get('output_billing_ceiling_verified',False)):
+            raise ValueError('Verify tokenizer byte upper bound and billed-output cap before freezing or confirmatory execution')
         if m.get('output_token_parameter','max_tokens') not in ('max_tokens','max_completion_tokens'):raise ValueError('Unsupported output token parameter')
+        if 'temperature' in m and m['temperature'] is not None and (type(m['temperature']) not in (int,float) or not math.isfinite(m['temperature']) or m['temperature']<0):
+            raise ValueError('temperature must be a finite non-negative number or null to omit it')
         options=m.get('request_options',{})
         if not isinstance(options,dict):raise ValueError('Request options must be an object')
         if set(options)-{'reasoning_effort','parallel_tool_calls'}:raise ValueError('Unsupported request option')
@@ -308,7 +324,8 @@ def validate_access(access,require_credentials=False):
 def public_model_spec(model):
     """Return the frozen, non-secret fields that identify a live configuration."""
     fields=('class','model_id','expected_response_model','base_url','input_usd_per_million',
-            'output_usd_per_million','output_token_parameter','request_options')
+            'output_usd_per_million','output_token_parameter','temperature','request_options',
+            'byte_token_upper_bound_verified','output_billing_ceiling_verified')
     return {field:model[field] for field in fields if field in model}
 
 def freeze_hash(protocol_path,tasks_path,access_path):
@@ -321,29 +338,33 @@ def runtime_fingerprint():
     return {'python':platform.python_version(),'packages':{p:version(p) for p in ('numpy','pandas','scipy','pyyaml','matplotlib')}}
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--mode',choices=('validate','freeze','ci','live'),default='validate')
+    parser=argparse.ArgumentParser();parser.add_argument('--mode',choices=('validate','freeze','development','ci','live'),default='validate')
     parser.add_argument('--protocol',default=str(ROOT/'configs/bounded_e2e_v1.json'));parser.add_argument('--tasks',default=str(ROOT/'configs/bounded_tasks_v1.jsonl'))
     parser.add_argument('--access',default=str(ROOT/'configs/bounded_access.example.json'));parser.add_argument('--output',default=str(ROOT/'results/bounded_e2e'))
     parser.add_argument('--approve-spend-usd',type=float,default=None,help='Explicitly authorized API ceiling; required for live mode')
     args=parser.parse_args();pp,tp,ap=map(Path,(args.protocol,args.tasks,args.access));protocol=json.loads(pp.read_text());out=Path(args.output)
     dev=load_tasks(tp,'development');held=load_tasks(tp,'confirmatory')
     if protocol['protocol_version']!='bounded-e2e-v1' or tuple(protocol['policies'])!=POLICIES:raise ValueError('Unexpected protocol')
-    expected=len(held)*len(POLICIES)*2
-    if expected!=protocol['maximum_confirmatory_episodes']:raise ValueError('Protocol/task count mismatch')
+    expected=len(held)*len(POLICIES)*2;development_expected=len(dev)*len(POLICIES)*2
+    if expected!=protocol['maximum_confirmatory_episodes'] or development_expected!=protocol['maximum_development_episodes']:
+        raise ValueError('Protocol/task count mismatch')
     if args.mode=='validate':
         print(json.dumps({'status':'prepared_live_access_pending','development_tasks':len(dev),'held_out_tasks':len(held),'episodes':expected,'maximum_calls':expected*protocol['max_turns'],'is_registered':False},indent=2));return
     lock_path=pp.with_name('bounded_e2e_lock.json')
-    if args.mode in ('freeze','live'):
-        access=json.loads(ap.read_text());validate_access(access,require_credentials=args.mode=='live');hash_value=freeze_hash(pp,tp,ap)
+    if args.mode in ('freeze','development','live'):
+        access=json.loads(ap.read_text());confirmatory=args.mode in ('freeze','live')
+        validate_access(access,require_credentials=args.mode in ('development','live'),require_confirmatory_guarantees=confirmatory);hash_value=freeze_hash(pp,tp,ap)
         if args.mode=='freeze':
             if lock_path.exists():raise RuntimeError('Protocol lock already exists; do not overwrite after execution')
             lock_path.write_text(json.dumps({'protocol_sha256':hash_value,'frozen_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'models':[m['model_id'] for m in access['models']]},indent=2)+'\n');print('Protocol frozen; no model calls made');return
-        if not lock_path.exists() or json.loads(lock_path.read_text()).get('protocol_sha256')!=hash_value:raise RuntimeError('Freeze exact code, tasks, protocol, and access before live execution')
+        if args.mode=='live' and (not lock_path.exists() or json.loads(lock_path.read_text()).get('protocol_sha256')!=hash_value):raise RuntimeError('Freeze exact code, tasks, protocol, and access before live execution')
         if args.approve_spend_usd is None or not math.isfinite(args.approve_spend_usd) or args.approve_spend_usd<=0:raise ValueError('Explicit positive approved spending ceiling required')
-        budget=Budget(protocol['maximum_confirmatory_model_calls'],args.approve_spend_usd,access['models'])
-        models=[LiveModel(m,protocol,budget) for m in access['models']];tasks=held
+        max_calls=protocol['maximum_confirmatory_model_calls'] if args.mode=='live' else protocol['maximum_development_model_calls']
+        budget=Budget(max_calls,args.approve_spend_usd,access['models'])
+        models=[LiveModel(m,protocol,budget) for m in access['models']];tasks=held if args.mode=='live' else dev
+        for model in models:model.evidence_class='live_development_local_services' if args.mode=='development' else 'live_e2e_local_services'
     else:models=[None];tasks=dev;hash_value=digest({'protocol':protocol,'tasks':tasks,'prompt':SYSTEM,'tool':TOOL});budget=None
-    out.mkdir(parents=True,exist_ok=True);filename=out/('live_runs.jsonl' if args.mode=='live' else 'ci_runs.jsonl')
+    out.mkdir(parents=True,exist_ok=True);filename=out/({'live':'live_runs.jsonl','development':'development_live_runs.jsonl','ci':'ci_runs.jsonl'}[args.mode])
     if filename.exists():raise RuntimeError('Output already exists; refusing to overwrite or repeat launched episodes')
     if args.mode=='live':
         spent_marker=pp.with_name('bounded_e2e_execution_started.json')
@@ -361,13 +382,15 @@ def main():
             f.write(canonical(row)+'\n');f.flush();launched.append(row)
             consecutive_errors=consecutive_errors+1 if row['status']=='provider_failure' else 0
             if row['status']=='budget_stop' or consecutive_errors>=3:break
-    manifest={'protocol_sha256':hash_value,'evidence_class':'live_e2e_local_services' if args.mode=='live' else 'ci_non_live',
+    evidence_class={'live':'live_e2e_local_services','development':'live_development_local_services','ci':'ci_non_live'}[args.mode]
+    manifest={'protocol_sha256':hash_value,'evidence_class':evidence_class,
               'planned_episodes':len(cells),'launched_episodes':len(launched),'complete_matrix':len(launched)==len(cells),
               'live_responses':sum(r['model_responses'] for r in launched),'budget':vars(budget) if budget else None,
-              'models':[public_model_spec(m.spec) for m in models] if args.mode=='live' else [{'class':'test','model_id':'scripted-e2e-ci'}],
+              'models':[public_model_spec(m.spec) for m in models] if args.mode in ('development','live') else [{'class':'test','model_id':'scripted-e2e-ci'}],
               'runs_sha256':hashlib.sha256(filename.read_bytes()).hexdigest(),'runtime':runtime_fingerprint(),
               'registration_status':'local_hash_only_not_external_preregistration'}
     if manifest['budget']:manifest['budget'].pop('models',None)
-    (out/('live_manifest.json' if args.mode=='live' else 'ci_manifest.json')).write_text(json.dumps(manifest,indent=2)+'\n');print(json.dumps(manifest,indent=2))
+    manifest_name={'live':'live_manifest.json','development':'development_live_manifest.json','ci':'ci_manifest.json'}[args.mode]
+    (out/manifest_name).write_text(json.dumps(manifest,indent=2)+'\n');print(json.dumps(manifest,indent=2))
 
 if __name__=='__main__':main()

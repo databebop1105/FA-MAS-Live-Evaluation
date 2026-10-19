@@ -16,6 +16,7 @@ A single tool-using model acts as the controller in each episode. This is end-to
 |---|---|
 | Services | Persistent-write workflow; inventory hold/capture/release |
 | Development tasks | Four, excluded from the held-out matrix |
+| Development live matrix | 4 tasks × 2 configurations × 2 policies = 16 non-confirmatory episodes; at most 192 model calls |
 | Held-out tasks | 32: two parameter variants for each of eight scenario families in each service |
 | Model-provider configurations | One named proprietary hosted configuration; one named open-weight configuration served through a pinned OpenAI-compatible endpoint |
 | Policies | FA-MAS contract enforcement; feature-matched model controller without enforcement |
@@ -60,7 +61,7 @@ The current environment has no hosted API key, pinned model settings, or supplie
 4. Development checks confirming each configuration's sampling/reasoning and output-limit fields are accepted and logged, with no silent fallback. The runner records only frozen non-secret request options; options are not copied from one provider to another without validation.
 5. Verified input/output billing rates, confirmation that the request-byte bound covers billed input tokens and the output parameter bounds all billed output/reasoning tokens, plus an explicitly approved USD ceiling. Independently billed server/GPU time is outside the token-cost calculation and needs its own authorization.
 
-Use `configs/bounded_access.example.json` as the schema; create a local access file with actual pinned non-secret settings. The API keys remain in environment variables and never enter files, locks, prompts, or logs. `base_url` must already include `/v1` if the server requires it: this runner appends `/chat/completions` once. Set `expected_response_model` when the server's returned ID differs from its requested model ID. `request_options` is a deliberately narrow per-configuration allowlist for the development-validated reasoning setting and parallel-tool-call control; it is included in the frozen manifest without credentials.
+Use `configs/bounded_access.example.json` as the schema; create a local access file with actual pinned non-secret settings. The API keys remain in environment variables and never enter files, locks, prompts, or logs. `base_url` must already include `/v1` if the server requires it: this runner appends `/chat/completions` once. Set `expected_response_model` when the server's returned ID differs from its requested model ID. `request_options` is a deliberately narrow per-configuration allowlist for the development-validated reasoning setting and parallel-tool-call control; it is included in the frozen manifest without credentials. `temperature` can be a finite non-negative value or `null` to omit the field only after a dated protocol amendment. The runner preserves the provider-issued tool-call ID in every assistant/tool message pair.
 
 For each model, the maximum token-cost reservation for the complete matrix is:
 
@@ -74,10 +75,15 @@ From the artifact root:
 python -m pip install -e .
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode validate
 # Fill configs/bounded_access.local.json; set keys securely outside the command.
+# Run this first. It only uses the four development fixtures and does not create
+# the confirmatory execution marker or qualify for confirmatory analysis.
+PYTHONPATH=src python -m fa_mas.bounded_e2e --mode development --access configs/bounded_access.local.json --approve-spend-usd DEVELOPMENT_USD --output results/bounded_e2e/development_YYYYMMDD
+# Update the two verification flags to true only after the development checks
+# establish the billed-token and parameter guarantees.
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode freeze --access configs/bounded_access.local.json
 # Replace APPROVED_USD with the author's explicitly authorized positive ceiling.
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode live --access configs/bounded_access.local.json --approve-spend-usd APPROVED_USD
 PYTHONPATH=src python -m fa_mas.bounded_analysis
 ```
 
-The lock covers all package source, task bank, protocol, endpoint/model/rate settings, and Python/dependency versions. A global execution-start marker prevents a new output folder from authorizing a second confirmatory run. Any legitimate rerun requires a documented amendment; changing or deleting the marker is not a way to hide failed outcomes. After live execution, audit raw state and usage, report negative results, and update the manuscript before making empirical live-model claims.
+Development rows use a distinct evidence class and the analysis command rejects them. The development access file may retain false verification flags while testing compatibility, but `freeze` and `live` reject those flags until their guarantees are established. The confirmatory lock covers all package source, task bank, protocol, endpoint/model/rate settings, and Python/dependency versions. A global execution-start marker prevents a new output folder from authorizing a second confirmatory run. Any legitimate rerun requires a documented amendment; changing or deleting the marker is not a way to hide failed outcomes. After confirmatory live execution, audit raw state and usage, report negative results, and update the manuscript before making empirical live-model claims.

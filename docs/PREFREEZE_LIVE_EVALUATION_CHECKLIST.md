@@ -7,7 +7,8 @@ does not authorize a held-out run by itself.
 
 - [ ] The hosted endpoint accepts the generic `execute_service_action` tool
   with `reasoning_effort: "none"`, `temperature: 0`, the frozen output limit,
-  and one returned tool call per turn.
+  and one returned tool call per turn. Preserve the provider-issued tool-call
+  ID in the corresponding tool response.
 - [ ] The selected open-weight endpoint accepts the same generic tool schema.
   Record only provider-supported reasoning and parallel-tool options; do not
   copy hosted-model options without a successful development test.
@@ -26,6 +27,11 @@ does not authorize a held-out run by itself.
 - [ ] A local budget reservation covers development, retries, and every
   possible held-out request. Provider hard limits are an additional control,
   not the sole cost guard.
+
+Run these checks only through `--mode development`, which executes 16
+development-only policy/configuration episodes and cannot enter confirmatory
+analysis. Give it its own explicit, modest spending ceiling and a new output
+directory for each development attempt.
 
 ## Freeze only after every check passes
 

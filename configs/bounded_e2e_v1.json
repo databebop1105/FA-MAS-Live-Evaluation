@@ -16,6 +16,8 @@
   "max_output_tokens": 512,
   "provider_timeout_seconds": 45,
   "episode_deadline_seconds": 600,
+  "maximum_development_episodes": 16,
+  "maximum_development_model_calls": 192,
   "maximum_confirmatory_episodes": 128,
   "maximum_confirmatory_model_calls": 1536,
   "seed": 20261009,

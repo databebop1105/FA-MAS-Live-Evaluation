@@ -122,4 +122,6 @@ access settings, billing verification, bounds, and interpretation limits.
 Before adding credentials or freezing a live run, complete
 `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
 endpoint acceptance checks from the held-out execution.
+`--mode development` runs only the four development fixtures under a separately
+approved budget; it cannot be analyzed as confirmatory evidence.
 No live end-to-end outcomes have been collected.

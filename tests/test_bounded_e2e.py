@@ -1,6 +1,8 @@
-import copy, hashlib, json, tempfile, threading, unittest
+import copy, hashlib, json, sys, tempfile, threading, unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import patch
+from fa_mas import bounded_e2e
 from fa_mas.bounded_e2e import (ROOT, Episode, Budget, BudgetStop, LiveModel, ProviderFailure,
     ScriptedModel, SYSTEM, TOOL, services, make_action as a, run_episode, load_tasks, validate_access, freeze_hash, public_model_spec)
 from fa_mas.bounded_analysis import analyze
@@ -96,6 +98,51 @@ class BoundedTests(unittest.TestCase):
         self.assertEqual(public_model_spec(valid['models'][0])['request_options']['reasoning_effort'],'none')
         valid['models'][1]['request_options']={'model':'replacement'}
         with self.assertRaises(ValueError):validate_access(valid)
+    def test_development_access_permits_pending_confirmatory_billing_guarantees(self):
+        access={'models':[
+            {'class':'hosted','model_id':'hosted-snapshot','base_url':'https://host.example/v1','api_key_env':'HOSTED_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_completion_tokens','temperature':None,'request_options':{},'byte_token_upper_bound_verified':False,'output_billing_ceiling_verified':False},
+            {'class':'open_weight','model_id':'open-weight-revision','base_url':'https://open.example/v1','api_key_env':'OPEN_WEIGHT_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_tokens','temperature':0,'request_options':{},'byte_token_upper_bound_verified':False,'output_billing_ceiling_verified':False}
+        ]}
+        validate_access(access,require_confirmatory_guarantees=False)
+        with self.assertRaises(ValueError):validate_access(access)
+    def test_live_development_mode_is_bounded_and_cannot_create_confirmatory_evidence(self):
+        received=[]
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_POST(self):
+                body=json.loads(self.rfile.read(int(self.headers['Content-Length'])));received.append(body)
+                task=json.loads(body['messages'][1]['content']);turn=sum(m['role']=='tool' for m in body['messages'])
+                actions=([a('invoke',1),a('status',1),a('invoke',2),a('finish')]
+                         if task['catalog']['service']=='workflow' else [a('hold'),a('status'),a('capture'),a('finish')])
+                action=actions[min(turn,len(actions)-1)]
+                payload=json.dumps({'id':'development-mock-'+str(len(received)),'model':body['model'],
+                    'usage':{'prompt_tokens':40,'completion_tokens':20},
+                    'choices':[{'message':{'content':None,'tool_calls':[{'id':'provider-'+str(len(received)),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
+                self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,kwargs={'poll_interval':.02},daemon=True);thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);protocol=path/'protocol.json';tasks=path/'tasks.jsonl';access=path/'access.json';output=path/'development'
+                protocol.write_text((ROOT/'configs/bounded_e2e_v1.json').read_text());tasks.write_text((ROOT/'configs/bounded_tasks_v1.jsonl').read_text())
+                base=f'http://127.0.0.1:{server.server_address[1]}/v1'
+                access.write_text(json.dumps({'models':[
+                    {'class':'hosted','model_id':'hosted-development-mock','expected_response_model':'hosted-development-mock','base_url':base,'api_key_env':'UNSET_HOSTED_KEY','input_usd_per_million':0,'output_usd_per_million':0,'output_token_parameter':'max_completion_tokens','temperature':None,'request_options':{'reasoning_effort':'none'},'byte_token_upper_bound_verified':False,'output_billing_ceiling_verified':False},
+                    {'class':'open_weight','model_id':'open-development-mock','expected_response_model':'open-development-mock','base_url':base,'api_key_env':'UNSET_OPEN_KEY','input_usd_per_million':0,'output_usd_per_million':0,'output_token_parameter':'max_tokens','temperature':0,'request_options':{'parallel_tool_calls':False},'byte_token_upper_bound_verified':False,'output_billing_ceiling_verified':False}
+                ]}))
+                argv=['bounded_e2e','--mode','development','--protocol',str(protocol),'--tasks',str(tasks),'--access',str(access),'--approve-spend-usd','1','--output',str(output)]
+                with patch.object(sys,'argv',argv):bounded_e2e.main()
+                manifest=json.loads((output/'development_live_manifest.json').read_text())
+                rows=[json.loads(line) for line in (output/'development_live_runs.jsonl').read_text().splitlines()]
+                self.assertEqual(manifest['evidence_class'],'live_development_local_services')
+                self.assertEqual((manifest['planned_episodes'],manifest['launched_episodes']),(16,16))
+                self.assertTrue(all(row['evidence_class']=='live_development_local_services' for row in rows))
+                self.assertFalse((path/'bounded_e2e_execution_started.json').exists())
+                with self.assertRaises(ValueError):analyze(output/'development_live_runs.jsonl',output/'development_live_manifest.json',tasks,path/'analysis')
+        finally:server.shutdown();server.server_close();thread.join()
+        hosted=next(body for body in received if body['model']=='hosted-development-mock')
+        open_weight=next(body for body in received if body['model']=='open-development-mock')
+        self.assertNotIn('temperature',hosted);self.assertEqual(hosted['reasoning_effort'],'none')
+        self.assertEqual(open_weight['temperature'],0);self.assertFalse(open_weight['parallel_tool_calls'])
     def test_non_live_analysis_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'m.json').write_text('{"evidence_class":"ci_non_live"}')
@@ -108,7 +155,7 @@ class BoundedTests(unittest.TestCase):
                 body=json.loads(self.rfile.read(int(self.headers['Content-Length'])));received.append(body)
                 action=actions[len(received)-1]
                 payload=json.dumps({'id':str(len(received)),'model':'mock-only','usage':{'prompt_tokens':40,'completion_tokens':20},
-                    'choices':[{'message':{'tool_calls':[{'id':'call','type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
+                    'choices':[{'message':{'content':None,'tool_calls':[{'id':'provider-call-'+str(len(received)),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
                 self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
         server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,kwargs={'poll_interval':.02},daemon=True);thread.start()
         spec={'model_id':'mock-only','class':'test','base_url':f'http://127.0.0.1:{server.server_address[1]}/v1','api_key_env':'UNSET_DIAGNOSTIC_KEY','input_usd_per_million':0,'output_usd_per_million':0,'request_options':{'reasoning_effort':'none','parallel_tool_calls':False}}
@@ -126,6 +173,9 @@ class BoundedTests(unittest.TestCase):
         self.assertEqual(received[0]['max_tokens'],P['max_output_tokens'])
         self.assertEqual(received[0]['reasoning_effort'],'none')
         self.assertFalse(received[0]['parallel_tool_calls'])
+        self.assertEqual(received[1]['messages'][-2]['tool_calls'][0]['id'],'provider-call-1')
+        self.assertEqual(received[1]['messages'][-1]['tool_call_id'],'provider-call-1')
+        self.assertIsNone(received[1]['messages'][-2]['content'])
     def test_lock_changes_if_any_service_code_or_access_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);access=p/'access.json';access.write_text('{"diagnostic":1}')
