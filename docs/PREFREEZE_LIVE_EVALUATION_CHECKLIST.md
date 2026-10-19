@@ -7,7 +7,8 @@ does not authorize a held-out run by itself.
 
 - [ ] The hosted endpoint accepts the generic `execute_service_action` tool
   with `reasoning_effort: "none"`, `temperature: 0`, the frozen output limit,
-  and one returned tool call per turn.
+  and one returned tool call per turn. Preserve the provider-issued tool-call
+  ID in the corresponding tool response.
 - [ ] The selected open-weight endpoint accepts the same generic tool schema.
   Record only provider-supported reasoning and parallel-tool options; do not
   copy hosted-model options without a successful development test.
@@ -27,15 +28,21 @@ does not authorize a held-out run by itself.
   possible held-out request. Provider hard limits are an additional control,
   not the sole cost guard.
 
+Run these checks only through `--mode development`, which executes 16
+development-only policy/configuration episodes and cannot enter confirmatory
+analysis. Give it its own explicit, modest spending ceiling and a new output
+directory for each development attempt.
+
 ## Freeze only after every check passes
 
-- [ ] Fill a non-secret access configuration with exact model IDs, endpoints,
-  expected returned IDs, token prices, output parameter names, and verified
-  request options.
+- [ ] Create a reviewed, credential-free `configs/bounded_access.frozen.json`
+  with exact model IDs, endpoints, expected returned IDs, token prices, output
+  parameter names, verified request options, and both verification flags set to
+  `true`. Keep `configs/bounded_access.local.json` ignored.
 - [ ] Freeze the source, task bank, generic tool schema, prompts, policies,
   pricing, retry/stopping rules, cluster map, and analysis plan.
 - [ ] Commit the frozen configuration and generated lock. Do not commit API
-  keys.
+  keys or the local development access file.
 - [ ] Run the held-out matrix exactly once. Retain every launched episode,
   including provider failures and budget stops.
 
