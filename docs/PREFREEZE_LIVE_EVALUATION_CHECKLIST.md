@@ -35,13 +35,14 @@ directory for each development attempt.
 
 ## Freeze only after every check passes
 
-- [ ] Fill a non-secret access configuration with exact model IDs, endpoints,
-  expected returned IDs, token prices, output parameter names, and verified
-  request options.
+- [ ] Create a reviewed, credential-free `configs/bounded_access.frozen.json`
+  with exact model IDs, endpoints, expected returned IDs, token prices, output
+  parameter names, verified request options, and both verification flags set to
+  `true`. Keep `configs/bounded_access.local.json` ignored.
 - [ ] Freeze the source, task bank, generic tool schema, prompts, policies,
   pricing, retry/stopping rules, cluster map, and analysis plan.
 - [ ] Commit the frozen configuration and generated lock. Do not commit API
-  keys.
+  keys or the local development access file.
 - [ ] Run the held-out matrix exactly once. Retain every launched episode,
   including provider failures and budget stops.
 

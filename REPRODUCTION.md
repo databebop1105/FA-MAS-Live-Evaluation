@@ -15,7 +15,7 @@ PYTHONPATH=src .venv/bin/python scripts/verify_evidence.py
 PYTHONPATH=src .venv/bin/python -m fa_mas.bounded_e2e --mode validate
 ```
 
-Verified on this host in a new virtual environment with no inherited site packages: 29 hash-locked distributions installed; 44 tests pass; 52,500 historical, 18,000 initial matched and 18,000 corrected simulator rows replay byte for byte. All 150 public-tool traces also reproduce exactly. Workflow/inventory verdicts are rejudged. Reports are under `results/`. This is clean installation on the same host/interpreter build, not independent third-party replication or cross-platform bitwise portability.
+The recorded clean-install audit on this host used 29 hash-locked distributions and passed 44 tests; it also replayed the 52,500 historical, 18,000 initial matched, and 18,000 corrected simulator rows byte for byte. All 150 public-tool traces reproduced exactly and workflow/inventory verdicts were rejudged. Subsequent runner safeguards add three non-live tests; the current suite has 47 tests. Reports are under `results/`. This remains same-host/interpreter verification, not independent third-party replication or cross-platform bitwise portability.
 
 The pinned upstream business-tool subset is in `third_party/tau2`, with its own MIT license and source commit. Its orchestration-heavy parent initializers are bypassed by namespace loading; imported business and utility modules are unmodified. No public dataset conversation or official benchmark reward is executed.
 
@@ -25,7 +25,7 @@ The container recipe pins its Linux amd64 base image by digest and enforces whee
 
 `results/runs.csv` remains the historical 52,500-row study. `results/matched_controls/` retains the initial negative strict-judge sensitivity. `results/matched_controls_v2/` adds a separately labeled effect-aware defect correction. Its changes are compensation prerequisites, shared selection/budgets and correct judgment of detected unauthorized execution. No older CSV is silently relabeled. Historical pre-correction source is retained under `historical_source/`.
 
-Regenerating a study intentionally overwrites its own result folder. Run regeneration in a separate copy if preserving originals. Read-only replay writes only verification reports. No command above calls a live model or modifies held-out tasks.
+Regenerating a study intentionally overwrites its own result folder. Run regeneration in a separate copy if preserving originals. Read-only replay writes only verification reports. No command above calls a live model or modifies held-out tasks. The separately budgeted live development path and its freeze requirements are documented in `FA_MAS_Bounded_Live_Study_Protocol.md`; it is intentionally not part of the reproducibility commands above.
 
 ## Release facts still required
 

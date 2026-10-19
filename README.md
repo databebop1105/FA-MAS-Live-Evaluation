@@ -1,14 +1,29 @@
-# Current evidence status — 9 October 2026
+# FA-MAS research artifact
 
-Start with REPRODUCTION.md and FA_MAS_Remaining_Priorities_Verification.md. The corrected exploratory simulator study, 150 public retail/airline direct-tool checks, 44 passing tests and fresh hash-locked installation are now included. Historical results below are retained and superseded only where explicitly stated. Live-model evaluation remains unexecuted. Compensation superiority, full multi-agent/subgraph implementation and author declarations remain unresolved.
+This repository contains model-free mechanism studies, deterministic service
+checks, and a bounded live-model evaluation harness for the FA-MAS paper. The
+committed evidence does not include live-model outcomes. The live harness is
+prepared for development-only compatibility checks and a later, separately
+frozen confirmatory run; it is not evidence of production reliability or
+multi-agent coordination.
 
-## Retained earlier documentation
+## Documentation map
 
-# Current evidence status — 9 October 2026
+| Document | Use it for |
+|---|---|
+| `REPRODUCTION.md` | Recreating the recorded model-free evidence and the non-live validation path |
+| `FA_MAS_Bounded_Live_Study_Protocol.md` | Scope, safeguards, cost assumptions, and launch sequence for the bounded live study |
+| `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md` | Development acceptance checks required before freezing the held-out run |
+| `FA_MAS_Remaining_Priorities_Verification.md` | Evidence audit, limits, and work that remains outside the current artifact |
+| `SUBMISSION_READINESS.md` | Submission-facing status and author-controlled open items |
 
-The bounded end-to-end protocol in `FA_MAS_Bounded_Live_Study_Protocol.md` supersedes the older one-decision Tier-2 plan below. Its 128 live episodes are prepared but unexecuted. The original simulator is historical authored evidence with unequal capability parameters and a weaker terminal judge. The new 18,000-row matched exploratory study does **not** show a safety advantage for full FA-MAS. See `REPRODUCTION.md` for read-only verification and `SUBMISSION_READINESS.md` for open gates.
+Historical results remain in place and are superseded only where an artifact
+states that explicitly. The corrected 18,000-row exploratory study does **not**
+establish a safety advantage for full FA-MAS; compensation superiority, the
+full multi-agent architecture, independent replication, and author declarations
+remain unresolved.
 
-# FA-MAS reproducible prototype
+## Model-free simulator
 
 This artifact implements a controlled, stochastic simulation of contract-aware,
 SLO-constrained recovery for stateful agent/service workflows. It is intended as
@@ -24,12 +39,14 @@ python -m fa_mas.experiment --config configs/confirmatory_simulator_v2.yaml
 
 The command writes run-level CSV data, summary tables, paired bootstrap confidence
 intervals, plots, and a Markdown report to `results/`.
-# FA-MAS prototype
 
-The repository contains two deliberately separate evidence tiers. Tier 1 is the
-controlled stochastic simulator reported in the manuscript. Tier 2 is a
-version-pinned live-model harness with resettable transactional state and
-deterministic post-run judges.
+## Historical Tier-2 controller harness
+
+The repository retains an earlier version-pinned controller harness with
+resettable transactional state and deterministic post-run judges. The bounded
+end-to-end study documented below is the current path for any future live-model
+work; this historical harness is retained for provenance rather than used to
+make new live claims.
 
 Validate the Tier-2 protocol and task split:
 
@@ -111,17 +128,32 @@ independent state judges, provider-failure retention, and source/configuration
 locking. This evaluates one model controller at a time, not multi-agent
 coordination. The protocol is locally prepared, not externally registered.
 
+Start with the two non-live checks:
+
 ```bash
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode validate
-# Non-live infrastructure check; use a fresh development output folder:
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode ci --output results/bounded_e2e/new_development_ci
 ```
+
+After credentials, model identifiers, provider pricing, and a development
+spending ceiling are available, run only the four development fixtures first:
+
+```bash
+PYTHONPATH=src python -m fa_mas.bounded_e2e --mode development \
+  --access configs/bounded_access.local.json \
+  --approve-spend-usd DEVELOPMENT_USD \
+  --output results/bounded_e2e/development_YYYYMMDD
+```
+
+That mode produces 16 policy/configuration episodes under a 192-call cap. Its
+rows are intentionally excluded from confirmatory analysis. After every
+pre-freeze check passes, create a reviewed, credential-free
+`configs/bounded_access.frozen.json`, set the verification flags to `true`, and
+freeze that exact configuration before the one confirmatory matrix run.
 
 See `FA_MAS_Bounded_Live_Study_Protocol.md` for exact launch commands, model
 access settings, billing verification, bounds, and interpretation limits.
 Before adding credentials or freezing a live run, complete
 `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
 endpoint acceptance checks from the held-out execution.
-`--mode development` runs only the four development fixtures under a separately
-approved budget; it cannot be analyzed as confirmatory evidence.
 No live end-to-end outcomes have been collected.
