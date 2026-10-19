@@ -35,10 +35,17 @@ def analyze(runs,manifest_path,tasks_path,output):
             verdict=judge_inventory(task,row['state'],initial,capacities,task['task_id']+'-hold')
         if any(row[k]!=v for k,v in verdict.items()):raise ValueError('Terminal database judge differs from saved outcome')
     frame=pd.DataFrame(rows); contrasts=[];rng=np.random.default_rng(20261009)
-    # Repeated instances/model classes are nested in service/fault families,
-    # not treated as independent observations for uncertainty.
-    for scope in ('pooled','workflow','inventory'):
-        f=frame if scope=='pooled' else frame[frame.service==scope]
+    # The configuration-specific contrasts are primary. Pooled and
+    # service-specific rows are descriptive sensitivities: neither turns nor
+    # model-provider configurations are treated as independent populations.
+    scopes=(
+        ('hosted_configuration',frame[frame.model_class=='hosted']),
+        ('open_weight_configuration',frame[frame.model_class=='open_weight']),
+        ('pooled_descriptive',frame),
+        ('workflow_descriptive',frame[frame.service=='workflow']),
+        ('inventory_descriptive',frame[frame.service=='inventory']),
+    )
+    for scope,f in scopes:
         index=['task_id','model_class','service','fault']
         fa=f[f.policy=='fa_mas'].set_index(index);base=f[f.policy=='feature_matched'].set_index(index)
         if len(fa)!=len(base) or set(fa.index)!=set(base.index):raise ValueError('Unpaired cells')
@@ -59,7 +66,7 @@ def analyze(runs,manifest_path,tasks_path,output):
     summary=frame.groupby(['service','policy','model_class'])[list(METRICS)+['safe_termination','total_tokens','tool_calls','wall_ms']].mean().reset_index()
     output.mkdir(parents=True,exist_ok=True);comparison.to_csv(output/'paired_comparisons.csv',index=False);summary.to_csv(output/'summary.csv',index=False)
     frame.groupby(['service','policy','model_class','status']).size().rename('episodes').reset_index().to_csv(output/'operational_status_counts.csv',index=False)
-    (output/'ANALYSIS_LIMITS.md').write_text('The tasks and faults are authored local service tests. Bootstrap clusters are the 16 service/fault families, not variants or model responses. Intervals and supplementary sign tests describe this bank under exchangeability assumptions; they do not establish production rates. Provider failures and budget stops are retained. The study exercises one tool-using model at a time and does not test multi-agent coordination.\n')
+    (output/'ANALYSIS_LIMITS.md').write_text('The primary rows are the hosted_configuration and open_weight_configuration gate contrasts. Pooled and service rows are descriptive sensitivities. The tasks and faults are authored local service tests. Bootstrap clusters are service/fault families, not variants, model responses, or turns. Intervals and supplementary sign tests describe this bank under exchangeability assumptions; they do not establish production rates. Provider failures and budget stops are retained. The study exercises one tool-using model at a time and does not test multi-agent coordination.\n')
     return {'rows':len(rows),'clusters':16,'evidence_class':'live_e2e_local_services'}
 
 def main():

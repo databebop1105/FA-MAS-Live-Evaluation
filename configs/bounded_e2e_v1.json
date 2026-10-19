@@ -5,7 +5,7 @@
     "feature_matched",
     "fa_mas"
   ],
-  "model_classes": [
+  "model_configurations": [
     "hosted",
     "open_weight"
   ],
@@ -19,14 +19,14 @@
   "maximum_confirmatory_episodes": 128,
   "maximum_confirmatory_model_calls": 1536,
   "seed": 20261009,
-  "primary_contrast": "fa_mas minus feature_matched",
+  "primary_contrast": "FA-MAS minus feature-matched within each named model-provider configuration",
   "primary_outcomes": [
     "task_success",
     "acceptable_outcome",
     "unsafe_outcome"
   ],
   "analysis_unit": "paired task-model episode",
-  "uncertainty": "paired bootstrap clustered by service-fault family; service-stratified sensitivity; descriptive with 16 clusters",
+  "uncertainty": "primary paired bootstrap per named model-provider configuration, clustered by service-fault family; pooled and service-stratified descriptive sensitivities; 16 authored clusters",
   "multiplicity": "Holm across three supplementary exact cluster-sign randomization tests; conditional on cluster exchangeability",
   "stopping_rule": "retain every launched episode, including provider failures; stop before next episode if global call/token/budget limit is reached or after 3 consecutive provider failures",
   "exclusions": "none after launch; do not rerun failures or budget stops in the confirmatory set",
