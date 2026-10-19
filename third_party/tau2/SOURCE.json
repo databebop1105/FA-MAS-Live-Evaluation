@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/sierra-research/tau2-bench",
+  "commit": "4ce7c0397c1eb65c9bbe59aeacfe1ca44a1cd699",
+  "retrieved": "2026-10-09",
+  "license": "MIT (Sierra Research 2025)",
+  "scope": "Unmodified loaded business/utility modules and retail/airline data. Parent orchestration initializers bypassed by namespace loading."
+}

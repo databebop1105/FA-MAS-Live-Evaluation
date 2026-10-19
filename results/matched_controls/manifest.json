@@ -1,0 +1,53 @@
+{
+  "config": {
+    "protocol": "matched-controls-v1",
+    "status": "post-audit exploratory sensitivity; not preregistered",
+    "seed": 20261009,
+    "repetitions": 100,
+    "domains": [
+      "refund",
+      "travel",
+      "incident"
+    ],
+    "faults": [
+      "none",
+      "infrastructure",
+      "protocol",
+      "semantic",
+      "agent",
+      "coordination",
+      "stateful",
+      "security"
+    ],
+    "intensities": [
+      0.15,
+      0.35
+    ],
+    "variants": [
+      "full",
+      "no_gates",
+      "no_compensation",
+      "first_feasible"
+    ],
+    "detect": 0.82,
+    "localize": 0.76,
+    "contract_detection_bonus": false,
+    "strict_terminal": true,
+    "slo": {
+      "latency_ms": 1800,
+      "cost_units": 18.0,
+      "max_attempts": 6
+    },
+    "weights": {
+      "latency": 0.0002,
+      "cost": 0.035,
+      "risk": 1.8
+    },
+    "bootstrap_replicates": 2000
+  },
+  "rows": 18000,
+  "protocol_sha256": "58889fe21dafbf03afd409a87a1337ae2accca832ba1e1e6341c0d57a3975d54",
+  "core_sha256": "df8f50d66d71c2508d7f90e161cdbf5c09b561c8d27d0cdb1b916b20b07bf25b",
+  "frontier_sha256": "315047536bee4ece703fe9b8ad74dab7f0adf560a4e05266b60de55f86a4b834",
+  "evidence_class": "exploratory_authored_simulator_no_llm"
+}

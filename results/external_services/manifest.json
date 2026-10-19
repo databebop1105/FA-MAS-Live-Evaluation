@@ -1,0 +1,254 @@
+{
+  "source": {
+    "repository": "https://github.com/sierra-research/tau2-bench",
+    "commit": "4ce7c0397c1eb65c9bbe59aeacfe1ca44a1cd699",
+    "retrieved": "2026-10-09",
+    "license": "MIT (Sierra Research 2025)",
+    "scope": "Unmodified loaded business/utility modules and retail/airline data. Parent orchestration initializers bypassed by namespace loading."
+  },
+  "selected_tasks": [
+    {
+      "domain": "retail",
+      "task_id": "16",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W5199551",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "30",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W9373487",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "31",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W9373487",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "32",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W9373487",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "38",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W9348897",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "54",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W4836353",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "55",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W4836353",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "59",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W8268610",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "66",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W3361211",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "69",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W2417020",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "74",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W3189752",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "76",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W8367380",
+        "reason": "ordered by mistake"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "78",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W5995614",
+        "reason": "ordered by mistake"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "81",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W3289292",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "88",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W8835847",
+        "reason": "ordered by mistake"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "90",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W9284598",
+        "reason": "ordered by mistake"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "98",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W8855135",
+        "reason": "no longer needed"
+      }
+    },
+    {
+      "domain": "retail",
+      "task_id": "113",
+      "operation": "cancel_pending_order",
+      "arguments": {
+        "order_id": "#W5056519",
+        "reason": "ordered by mistake"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "7",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "XEHM4B"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "14",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "K1NW8N"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "19",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "Z7GOZK"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "23",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "K1NW8N"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "29",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "VA5SGQ"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "39",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "8C8K4E"
+      }
+    },
+    {
+      "domain": "airline",
+      "task_id": "42",
+      "operation": "cancel_reservation",
+      "arguments": {
+        "reservation_id": "FDZ0T5"
+      }
+    }
+  ],
+  "rows": 150,
+  "files": {
+    "src/tau2/utils/io_utils.py": "ce66fb275b9bbf09a17be2cb2092bf2e696ab07655bf7571fe53ba8db4ed3015",
+    "src/tau2/utils/utils.py": "e0c39544b01700e60a3a26c7cf2c2d17e37e3852d5f0fa466b8517f82b83622b",
+    "src/tau2/utils/pydantic_utils.py": "618dfc39b619bb0f623151682962ddc52bf2ea70bc2562dded884f118c84b78a",
+    "src/tau2/utils/__init__.py": "e255aeff0258cf0042f57283c5375cd78b034509b886ba827cd927a2a6d27c6a",
+    "src/tau2/domains/retail/utils.py": "a385b085b63d0e5921c15f7e2201b00df1d984990f4dbb7b24a867e3bf7cb648",
+    "src/tau2/environment/db.py": "49e12f900a8aabe62d6137a9baa1e7d471f9b3e516cf7c85fb61ecde8a65154c",
+    "src/tau2/domains/retail/data_model.py": "f5ad09590953855cc49d2ab2ad5c0594be408cae74d1500fb278e5a6bf2c50d6",
+    "src/tau2/environment/tool.py": "6dd74021ba95a6f8dfa0971546b768b90e15b212f8f9051156ae6bcdd24b77d3",
+    "src/tau2/environment/toolkit.py": "3e897891e8878c3399aec72e42eb0eb5546642420c0c902b225421fc936b924a",
+    "src/tau2/domains/retail/tools.py": "34f4fe9702d36f0dd4697700fbcd63d0cf5386e6eb8e7499aaa336243bad8750",
+    "src/tau2/domains/airline/utils.py": "9da26327af3d7fa94e05d48869d8b06cd8110313fc24d308993a750106b11f06",
+    "src/tau2/domains/airline/data_model.py": "a8083e2f590e4b9b66a65d7cd50b7a0247e4fa33d6961aaeb02e4d92488b3cff",
+    "src/tau2/domains/airline/tools.py": "3987f21c286314cb48764f97052934ff4fd60e27a0b2e4a43423911adf8eaa26",
+    "LICENSE": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe",
+    "data/tau2/domains/retail/db.json": "413a65160adbdb5fde0ffc0015c49b6d70250b10c18128de169b597af7766765",
+    "data/tau2/domains/retail/tasks.json": "8e03ebce7901bd6218e7a7dc3105faa9324091a68058f7fe61c65262868812e8",
+    "data/tau2/domains/retail/policy.md": "2c9652afbce57d6e087768d37cda64d31c53d50b3e3225cfdb791bac66466467",
+    "data/tau2/domains/airline/db.json": "1af9fea6e03ca7ca15a22bb3fcaf3e351393e3fc9070b6777947da8996f7531b",
+    "data/tau2/domains/airline/tasks.json": "ccd8ba737b4cc371415af70151187788f728d6108d0916e73bb4317b40542052",
+    "data/tau2/domains/airline/policy.md": "10dc0525421521208be39cee235bba84a16e2bcba9899eb93d92cd81d2f62fc4"
+  },
+  "selection": "All retail/airline tasks with null initial_state and an expected cancellation action; 18 retail and 7 airline at the pinned revision.",
+  "limits": "Reference actions supplied directly; no model or user simulation, no full official reward, no HTTP or production calls. Faults and wrappers are authored. Oracle clean-state equality is not independent semantic adjudication."
+}

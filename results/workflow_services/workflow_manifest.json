@@ -1,0 +1,33 @@
+{
+  "evidence_class": "engineered_multistep_http_sqlite_no_llm",
+  "cases_per_policy": 27,
+  "runs": 135,
+  "domains": [
+    "refund",
+    "travel",
+    "incident"
+  ],
+  "faults": [
+    "clean",
+    "lost_reply_after_commit",
+    "lost_reply_before_commit",
+    "stale_status_after_commit",
+    "partial_commit",
+    "primary_unavailable",
+    "permission_denied",
+    "incompatible_alternate",
+    "compensation_unavailable"
+  ],
+  "policies": [
+    "static",
+    "stable_retry",
+    "verify_retry",
+    "feature_matched",
+    "fa_mas"
+  ],
+  "source_sha256": {
+    "workflow_services.py": "c14d6eccd17e023f8f5bda6781992f4f937fa07e4ab21daa0fdb052c728190db",
+    "local_services.py": "869540bc18f0ea05225384ded730a01036f811cd2abb6cb242d02ba9d22570c9"
+  },
+  "scope": "Three state-changing service calls; one fault at the middle call. Authored cases, descriptive counts."
+}

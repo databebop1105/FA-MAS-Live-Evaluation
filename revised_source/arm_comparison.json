@@ -1,0 +1,88 @@
+{
+  "full": {
+    "paired_rows": 4500,
+    "changed_rows": 173,
+    "changed_fields": {
+      "task_success": 123,
+      "slo_attained": 123,
+      "unsafe_side_effect": 111,
+      "recovered": 20,
+      "acceptable_outcome": 123,
+      "latency_ms": 173,
+      "cost_units": 173,
+      "attempts": 20,
+      "invariant_violation": 7,
+      "orphaned_effect": 113
+    },
+    "old_outcomes": {
+      "task_success": 0.85,
+      "acceptable_outcome": 0.8708888888888889,
+      "unsafe_side_effect": 0.09955555555555555
+    },
+    "new_outcomes": {
+      "task_success": 0.8773333333333333,
+      "acceptable_outcome": 0.8982222222222223,
+      "unsafe_side_effect": 0.07577777777777778
+    }
+  },
+  "no_gates": {
+    "paired_rows": 4500,
+    "changed_rows": 661,
+    "changed_fields": {
+      "task_success": 311,
+      "slo_attained": 311,
+      "unsafe_side_effect": 207,
+      "recovered": 274,
+      "acceptable_outcome": 311,
+      "latency_ms": 629,
+      "cost_units": 538,
+      "attempts": 203,
+      "recovery_attempts": 22,
+      "duplicate_side_effect": 2,
+      "unauthorized_attempt": 99,
+      "invariant_violation": 111,
+      "compensated": 22,
+      "orphaned_effect": 127
+    },
+    "old_outcomes": {
+      "task_success": 0.8682222222222222,
+      "acceptable_outcome": 0.8682222222222222,
+      "unsafe_side_effect": 0.09733333333333333
+    },
+    "new_outcomes": {
+      "task_success": 0.8773333333333333,
+      "acceptable_outcome": 0.8773333333333333,
+      "unsafe_side_effect": 0.09666666666666666
+    }
+  },
+  "no_compensation": {
+    "paired_rows": 4500,
+    "changed_rows": 0,
+    "changed_fields": {},
+    "old_outcomes": {
+      "task_success": 0.8771111111111111,
+      "acceptable_outcome": 0.898,
+      "unsafe_side_effect": 0.076
+    },
+    "new_outcomes": {
+      "task_success": 0.8771111111111111,
+      "acceptable_outcome": 0.898,
+      "unsafe_side_effect": 0.076
+    }
+  },
+  "first_feasible": {
+    "paired_rows": 4500,
+    "changed_rows": 0,
+    "changed_fields": {},
+    "old_outcomes": {
+      "task_success": 0.8548888888888889,
+      "acceptable_outcome": 0.8757777777777778,
+      "unsafe_side_effect": 0.08933333333333333
+    },
+    "new_outcomes": {
+      "task_success": 0.8548888888888889,
+      "acceptable_outcome": 0.8757777777777778,
+      "unsafe_side_effect": 0.08933333333333333
+    }
+  }
+}

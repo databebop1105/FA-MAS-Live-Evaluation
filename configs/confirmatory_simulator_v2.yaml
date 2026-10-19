@@ -1,0 +1,25 @@
+protocol_version: 2.0
+frozen_after_pilot: true
+seed: 20260921
+repetitions: 100
+domains: [refund, travel, incident]
+faults: [none, infrastructure, protocol, semantic, agent, coordination, stateful, security]
+intensities: [0.15, 0.35]
+baselines: [static, retry, react, replan, self_heal, unconstrained, fa_mas]
+primary_outcomes: [task_success, acceptable_outcome, slo_attained, unsafe_side_effect]
+alpha: 0.05
+slo:
+  latency_ms: 1800
+  cost_units: 18.0
+  max_attempts: 6
+utility_weights:
+  latency: 0.00020
+  cost: 0.035
+  risk: 1.8
+  slo_violation: 1.2
+changes_from_pilot:
+  - Compensation is followed by reconciliation, substitution, and resume.
+  - Safe policy abstention is reported separately from task completion.
+  - Incident response is added as a third stateful domain.
+  - Repetitions increase from 30 to 100 per stochastic cell.
+  - Holm correction is applied within each primary-outcome comparison family.

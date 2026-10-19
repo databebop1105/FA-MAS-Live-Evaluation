@@ -1,0 +1,26 @@
+{
+  "evidence_class": "local_http_sqlite_no_llm",
+  "run_count": 72,
+  "paired_cases_per_policy": 18,
+  "domains": [
+    "refund",
+    "travel",
+    "incident"
+  ],
+  "fault_scenarios": [
+    "lost_reply_after_commit",
+    "lost_reply_before_commit",
+    "stale_status_after_commit",
+    "partial_commit",
+    "primary_unavailable",
+    "permission_denied"
+  ],
+  "policies": [
+    "static",
+    "retry",
+    "verify_before_retry",
+    "fa_mas"
+  ],
+  "protocol_sha256": "869540bc18f0ea05225384ded730a01036f811cd2abb6cb242d02ba9d22570c9",
+  "interpretation": "Engineered conformance cases; counts are descriptive and do not estimate real-world fault incidence."
+}

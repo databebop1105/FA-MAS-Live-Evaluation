@@ -1,0 +1,28 @@
+protocol_version: live-tier-v1
+status: implementation_complete_execution_pending_model_pins
+seed: 20260922
+confirmatory_split: confirmatory
+models:
+  - class: hosted
+    model_id: ${HOSTED_MODEL_ID}
+    base_url: ${HOSTED_BASE_URL}
+    api_key_env: HOSTED_API_KEY
+  - class: open_weight
+    model_id: ${OPEN_WEIGHT_MODEL_ID}
+    base_url: ${OPEN_WEIGHT_BASE_URL}
+    api_key_env: OPEN_WEIGHT_API_KEY
+temperatures: [0.0, 0.7]
+repetitions: 1
+policies: [static, retry, self_heal, unconstrained, fa_mas]
+faults: [infrastructure, protocol, semantic, agent, coordination, stateful, security]
+primary_outcomes: [task_success, acceptable_outcome, unsafe_side_effect]
+secondary_outcomes: [safe_termination, policy_violation, latency_ms, total_tokens]
+analysis:
+  paired_key: [task_id, fault, seed, model_id, temperature]
+  primary_contrast: fa_mas_minus_each_baseline
+  interval: paired_cluster_bootstrap_95
+  multiplicity: holm_within_outcome
+  mixed_effects: architecture_fixed_task_and_model_random_intercepts
+stopping_rule: complete_all_cells_unless_provider_outage_or_prespecified_safety_stop
+exclusions: none_after_model_response; provider_failures_retained_and_labeled
+freeze_rule: replace_all_environment_placeholders_then_record_sha256_before_confirmatory_execution

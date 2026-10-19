@@ -1,0 +1,9 @@
+{
+  "protocol_sha256": "b8c0494b062dc4d5d272be595f1b5686e018511f4356c87bbcee458a31b02ddd",
+  "evidence_class": "ci_non_live",
+  "rows": 210,
+  "models": [
+    "scripted-ci-v1"
+  ],
+  "created_utc": "2026-09-24T18:14:10Z"
+}

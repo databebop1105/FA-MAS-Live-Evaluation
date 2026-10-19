@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "python": "3.12.14",
+  "original_rows_byte_identical": 52500,
+  "original_sha256": "fc81205532377ee6646c20d9c1937bcfb1a055ba2a68cc47802784a042cb769a",
+  "matched_rows_byte_identical": 18000,
+  "effect_aware_rows_byte_identical": 18000,
+  "inventory_verdicts_recomputed": 35,
+  "workflow": {
+    "audited_rows": 135,
+    "policies": {
+      "static": 27,
+      "stable_retry": 27,
+      "verify_retry": 27,
+      "feature_matched": 27,
+      "fa_mas": 27
+    },
+    "status": "passed"
+  },
+  "limits": "Replay verifies reproducibility, not construct validity, live efficacy or independent replication."
+}

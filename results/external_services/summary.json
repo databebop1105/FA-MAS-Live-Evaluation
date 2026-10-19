@@ -1,0 +1,98 @@
+[
+  {
+    "domain": "retail",
+    "fault": "clean",
+    "policy": "feature_matched",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "retail",
+    "fault": "clean",
+    "policy": "fa_mas",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "retail",
+    "fault": "before_commit",
+    "policy": "feature_matched",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "retail",
+    "fault": "before_commit",
+    "policy": "fa_mas",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "retail",
+    "fault": "lost_reply",
+    "policy": "feature_matched",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "retail",
+    "fault": "lost_reply",
+    "policy": "fa_mas",
+    "runs": 18,
+    "complete": 18,
+    "unsafe": 0
+  },
+  {
+    "domain": "airline",
+    "fault": "clean",
+    "policy": "feature_matched",
+    "runs": 7,
+    "complete": 7,
+    "unsafe": 0
+  },
+  {
+    "domain": "airline",
+    "fault": "clean",
+    "policy": "fa_mas",
+    "runs": 7,
+    "complete": 7,
+    "unsafe": 0
+  },
+  {
+    "domain": "airline",
+    "fault": "before_commit",
+    "policy": "feature_matched",
+    "runs": 7,
+    "complete": 7,
+    "unsafe": 0
+  },
+  {
+    "domain": "airline",
+    "fault": "before_commit",
+    "policy": "fa_mas",
+    "runs": 7,
+    "complete": 7,
+    "unsafe": 0
+  },
+  {
+    "domain": "airline",
+    "fault": "lost_reply",
+    "policy": "feature_matched",
+    "runs": 7,
+    "complete": 0,
+    "unsafe": 7
+  },
+  {
+    "domain": "airline",
+    "fault": "lost_reply",
+    "policy": "fa_mas",
+    "runs": 7,
+    "complete": 7,
+    "unsafe": 0
+  }
+]

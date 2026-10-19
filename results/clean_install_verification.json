@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "same_host_clean_install": true,
+  "independent_third_party_replication": false,
+  "python": "3.12.14",
+  "test_count": 44,
+  "runtime_dependency_distributions": 29,
+  "all_runtime_wheel_hashes_required": true,
+  "public_tool_rows_byte_identical": 150,
+  "public_traces_sha256": "dbfa61697712b82c157e87828339655f2e14df8d88e320502fd37124698a038f",
+  "limitations": "Same machine/OS/interpreter build; binary lock targets CPython 3.12 Linux x86_64. Container not built. No model calls."
+}

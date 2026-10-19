@@ -1,0 +1,20 @@
+[
+  {
+    "suite": "single_step",
+    "byte_identical": true,
+    "old_sha256": "3eb67bf3a712f7e2e0f4974a16cc57fe8cc451844b237a93ca24edb0b755f70a",
+    "new_sha256": "3eb67bf3a712f7e2e0f4974a16cc57fe8cc451844b237a93ca24edb0b755f70a"
+  },
+  {
+    "suite": "workflow",
+    "byte_identical": true,
+    "old_sha256": "29276b2e3d10512563fa294de163ffccfe5fdac8e128ec4741dc152319c9e017",
+    "new_sha256": "29276b2e3d10512563fa294de163ffccfe5fdac8e128ec4741dc152319c9e017"
+  },
+  {
+    "suite": "inventory",
+    "byte_identical": true,
+    "old_sha256": "bb22c991bb0295dd1b1f570934350f389d5fdbb9d6fef0d3d8f3e36230db28d9",
+    "new_sha256": "bb22c991bb0295dd1b1f570934350f389d5fdbb9d6fef0d3d8f3e36230db28d9"
+  }
+]

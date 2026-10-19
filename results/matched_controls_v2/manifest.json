@@ -1,0 +1,54 @@
+{
+  "config": {
+    "protocol": "matched-controls-v2-effect-aware",
+    "status": "post-audit exploratory defect correction; not preregistered; same authored cells",
+    "seed": 20261009,
+    "repetitions": 100,
+    "domains": [
+      "refund",
+      "travel",
+      "incident"
+    ],
+    "faults": [
+      "none",
+      "infrastructure",
+      "protocol",
+      "semantic",
+      "agent",
+      "coordination",
+      "stateful",
+      "security"
+    ],
+    "intensities": [
+      0.15,
+      0.35
+    ],
+    "variants": [
+      "full",
+      "no_gates",
+      "no_compensation",
+      "first_feasible"
+    ],
+    "detect": 0.82,
+    "localize": 0.76,
+    "contract_detection_bonus": false,
+    "strict_terminal": true,
+    "slo": {
+      "latency_ms": 1800,
+      "cost_units": 18.0,
+      "max_attempts": 6
+    },
+    "weights": {
+      "latency": 0.0002,
+      "cost": 0.035,
+      "risk": 1.8
+    },
+    "bootstrap_replicates": 2000,
+    "recovery_semantics": "effect_aware"
+  },
+  "rows": 18000,
+  "protocol_sha256": "5b1e766657546b87bb0eec109195b97f56bff1c0650b3382a58ec025be2cf2ff",
+  "core_sha256": "2773384ad2839290f76a5259d27a1985f49b33222a7ea78a203256cb75894cd0",
+  "frontier_sha256": "315047536bee4ece703fe9b8ad74dab7f0adf560a4e05266b60de55f86a4b834",
+  "evidence_class": "exploratory_authored_simulator_no_llm"
+}

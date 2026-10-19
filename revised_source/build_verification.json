@@ -1,0 +1,16 @@
+{
+  "pages": 14,
+  "class": "IEEEtran 1.8b journal compsoc",
+  "class_sha256": "da751920a317ed318b7b5cd7fa585a6cc7d28502d457856382e9be24b10a3bd7",
+  "undefined_references": false,
+  "overfull_boxes": false,
+  "author_facts_unconfirmed": true,
+  "live_calls": 0,
+  "source_bibitems": 50,
+  "pdf_sha256": "4c5cc7d7e9e13b8ee3f82a4f72c740505c4e51e2052c3d3be682a6c98deec8a6",
+  "all_pages_visually_inspected": true,
+  "author_edit_consent": true,
+  "author_emails_supplied": true,
+  "funding_statement_author_confirmed": true,
+  "full_author_names_in_footnote": true
+}

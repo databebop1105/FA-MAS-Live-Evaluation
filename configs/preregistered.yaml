@@ -1,0 +1,18 @@
+seed: 20260921
+repetitions: 30
+domains: [refund, travel]
+faults: [none, infrastructure, protocol, semantic, agent, coordination, stateful, security]
+intensities: [0.15, 0.35]
+baselines: [static, retry, react, replan, self_heal, unconstrained, fa_mas]
+primary_outcomes: [task_success, slo_attained, unsafe_side_effect]
+alpha: 0.05
+slo:
+  latency_ms: 1500
+  cost_units: 16.0
+  max_attempts: 5
+utility_weights:
+  latency: 0.00020
+  cost: 0.035
+  risk: 1.8
+  slo_violation: 1.2
+

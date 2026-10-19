@@ -1,0 +1,40 @@
+{
+  "cases": 35,
+  "faults": [
+    "clean",
+    "lost_after_hold",
+    "lost_before_hold",
+    "stale_read",
+    "primary_outage",
+    "wrong_sku_alternate",
+    "capture_denied_release_unavailable"
+  ],
+  "summary": {
+    "static": {
+      "task_success": 1,
+      "safe_termination": 3,
+      "unsafe_outcome": 3
+    },
+    "stable_retry": {
+      "task_success": 4,
+      "safe_termination": 2,
+      "unsafe_outcome": 1
+    },
+    "verify_retry": {
+      "task_success": 3,
+      "safe_termination": 2,
+      "unsafe_outcome": 2
+    },
+    "feature_matched": {
+      "task_success": 4,
+      "safe_termination": 0,
+      "unsafe_outcome": 3
+    },
+    "fa_mas": {
+      "task_success": 4,
+      "safe_termination": 2,
+      "unsafe_outcome": 1
+    }
+  },
+  "evidence_class": "engineered_distinct_inventory_http_sqlite_no_llm"
+}

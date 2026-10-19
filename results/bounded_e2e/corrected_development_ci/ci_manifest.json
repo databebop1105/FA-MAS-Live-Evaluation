@@ -1,0 +1,27 @@
+{
+  "protocol_sha256": "0153e780d7a55917f848af528b891dcf2795f402fd44da47dbe42c0507e46cd6",
+  "evidence_class": "ci_non_live",
+  "planned_episodes": 8,
+  "launched_episodes": 8,
+  "complete_matrix": true,
+  "live_responses": 0,
+  "budget": null,
+  "models": [
+    {
+      "class": "test",
+      "model_id": "scripted-e2e-ci"
+    }
+  ],
+  "runs_sha256": "d2e3e731ad5855340d030677a61d8d9428b69028624b2f16b1bd5e4ccbece5d2",
+  "runtime": {
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "pandas": "2.2.3",
+      "scipy": "1.17.0",
+      "pyyaml": "6.0.3",
+      "matplotlib": "3.10.8"
+    }
+  },
+  "registration_status": "local_hash_only_not_external_preregistration"
+}

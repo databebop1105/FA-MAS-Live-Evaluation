@@ -1,0 +1,24 @@
+{
+  "status": "unconfirmed_do_not_submit",
+  "corresponding_author": {
+    "name": null,
+    "affiliation": null,
+    "email": null
+  },
+  "authors_and_contributions": null,
+  "all_authors_approve": null,
+  "funding_and_compute_support": null,
+  "conflicts": null,
+  "prior_public_versions": null,
+  "concurrent_or_related_submissions": null,
+  "copyright_ownership_and_permissions": null,
+  "approved_artifact_license": null,
+  "ai_disclosure_checked": null,
+  "hosted_model_id": null,
+  "hosted_endpoint": null,
+  "open_weight_model_revision": null,
+  "open_weight_endpoint": null,
+  "billing_assumptions": null,
+  "explicit_spend_ceiling_usd": null,
+  "note": "Never include API keys here. Configure secrets securely in the execution environment."
+}
