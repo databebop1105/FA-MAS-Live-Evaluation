@@ -119,4 +119,7 @@ PYTHONPATH=src python -m fa_mas.bounded_e2e --mode ci --output results/bounded_e
 
 See `FA_MAS_Bounded_Live_Study_Protocol.md` for exact launch commands, model
 access settings, billing verification, bounds, and interpretation limits.
+Before adding credentials or freezing a live run, complete
+`docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
+endpoint acceptance checks from the held-out execution.
 No live end-to-end outcomes have been collected.

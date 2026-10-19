@@ -68,6 +68,11 @@ class LiveModel:
               'tool_choice':{'type':'function','function':{'name':'execute_service_action'}},
               'temperature':self.protocol['temperature'],
               self.spec.get('output_token_parameter','max_tokens'):self.protocol['max_output_tokens']}
+        # Providers do not all expose the same reasoning controls. Keep the
+        # common tool protocol fixed, but apply only the frozen, per-model
+        # options validated on development tasks (for example,
+        # {"reasoning_effort": "none"} for a compatible hosted endpoint).
+        body.update(self.spec.get('request_options',{}))
         payload=canonical(body).encode()
         if len(payload)>self.protocol['max_prompt_bytes']: raise BudgetStop('Prompt byte ceiling reached')
         self.budget.reserve(self.spec,self.protocol)
@@ -292,6 +297,19 @@ def validate_access(access,require_credentials=False):
         if any(type(m.get(k)) not in (int,float) or not math.isfinite(m[k]) or m[k]<0 for k in ('input_usd_per_million','output_usd_per_million')):raise ValueError('Supply verified billing rates, including reasoning token treatment')
         if not m.get('byte_token_upper_bound_verified',False) or not m.get('output_billing_ceiling_verified',False):raise ValueError('Verify tokenizer byte upper bound and billed-output cap before live execution')
         if m.get('output_token_parameter','max_tokens') not in ('max_tokens','max_completion_tokens'):raise ValueError('Unsupported output token parameter')
+        options=m.get('request_options',{})
+        if not isinstance(options,dict):raise ValueError('Request options must be an object')
+        if set(options)-{'reasoning_effort','parallel_tool_calls'}:raise ValueError('Unsupported request option')
+        if 'reasoning_effort' in options and options['reasoning_effort'] not in ('none','minimal','low','medium','high','xhigh','max'):
+            raise ValueError('Unsupported reasoning effort')
+        if 'parallel_tool_calls' in options and type(options['parallel_tool_calls']) is not bool:
+            raise ValueError('parallel_tool_calls must be boolean')
+
+def public_model_spec(model):
+    """Return the frozen, non-secret fields that identify a live configuration."""
+    fields=('class','model_id','expected_response_model','base_url','input_usd_per_million',
+            'output_usd_per_million','output_token_parameter','request_options')
+    return {field:model[field] for field in fields if field in model}
 
 def freeze_hash(protocol_path,tasks_path,access_path):
     paths=[protocol_path,tasks_path,access_path,*sorted((ROOT/'src/fa_mas').glob('*.py'))]
@@ -346,7 +364,7 @@ def main():
     manifest={'protocol_sha256':hash_value,'evidence_class':'live_e2e_local_services' if args.mode=='live' else 'ci_non_live',
               'planned_episodes':len(cells),'launched_episodes':len(launched),'complete_matrix':len(launched)==len(cells),
               'live_responses':sum(r['model_responses'] for r in launched),'budget':vars(budget) if budget else None,
-              'models':[{'class':m.spec['class'],'model_id':m.model_id,'expected_response_model':m.spec.get('expected_response_model',m.model_id)} for m in models] if args.mode=='live' else [{'class':'test','model_id':'scripted-e2e-ci'}],
+              'models':[public_model_spec(m.spec) for m in models] if args.mode=='live' else [{'class':'test','model_id':'scripted-e2e-ci'}],
               'runs_sha256':hashlib.sha256(filename.read_bytes()).hexdigest(),'runtime':runtime_fingerprint(),
               'registration_status':'local_hash_only_not_external_preregistration'}
     if manifest['budget']:manifest['budget'].pop('models',None)

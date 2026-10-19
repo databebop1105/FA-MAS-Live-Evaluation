@@ -2,7 +2,7 @@ import copy, hashlib, json, tempfile, threading, unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from fa_mas.bounded_e2e import (ROOT, Episode, Budget, BudgetStop, LiveModel, ProviderFailure,
-    ScriptedModel, SYSTEM, TOOL, services, make_action as a, run_episode, load_tasks, validate_access, freeze_hash)
+    ScriptedModel, SYSTEM, TOOL, services, make_action as a, run_episode, load_tasks, validate_access, freeze_hash, public_model_spec)
 from fa_mas.bounded_analysis import analyze
 
 P=json.loads((ROOT/'configs/bounded_e2e_v1.json').read_text())
@@ -87,6 +87,15 @@ class BoundedTests(unittest.TestCase):
         b=Budget(1,1,[spec]);b.reserve(spec,P)
         with self.assertRaises(BudgetStop):b.reserve(spec,P)
         with self.assertRaises(ValueError):validate_access(json.loads((ROOT/'configs/bounded_access.example.json').read_text()))
+    def test_request_options_are_limited_to_frozen_provider_controls(self):
+        valid={'models':[
+            {'class':'hosted','model_id':'hosted-snapshot','base_url':'https://host.example/v1','api_key_env':'HOSTED_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_completion_tokens','request_options':{'reasoning_effort':'none','parallel_tool_calls':False},'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True},
+            {'class':'open_weight','model_id':'open-weight-revision','base_url':'https://open.example/v1','api_key_env':'OPEN_WEIGHT_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_tokens','request_options':{},'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True}
+        ]}
+        validate_access(valid)
+        self.assertEqual(public_model_spec(valid['models'][0])['request_options']['reasoning_effort'],'none')
+        valid['models'][1]['request_options']={'model':'replacement'}
+        with self.assertRaises(ValueError):validate_access(valid)
     def test_non_live_analysis_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'m.json').write_text('{"evidence_class":"ci_non_live"}')
@@ -102,7 +111,7 @@ class BoundedTests(unittest.TestCase):
                     'choices':[{'message':{'tool_calls':[{'id':'call','type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
                 self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
         server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,kwargs={'poll_interval':.02},daemon=True);thread.start()
-        spec={'model_id':'mock-only','class':'test','base_url':f'http://127.0.0.1:{server.server_address[1]}/v1','api_key_env':'UNSET_DIAGNOSTIC_KEY','input_usd_per_million':0,'output_usd_per_million':0}
+        spec={'model_id':'mock-only','class':'test','base_url':f'http://127.0.0.1:{server.server_address[1]}/v1','api_key_env':'UNSET_DIAGNOSTIC_KEY','input_usd_per_million':0,'output_usd_per_million':0,'request_options':{'reasoning_effort':'none','parallel_tool_calls':False}}
         class NonLiveWireModel(LiveModel):is_live=False
         model=NonLiveWireModel(spec,P,Budget(12,1,[spec]))
         try:
@@ -115,6 +124,8 @@ class BoundedTests(unittest.TestCase):
         self.assertIn('504',received[1]['messages'][-1]['content'])
         self.assertEqual(row['total_tokens'],240)
         self.assertEqual(received[0]['max_tokens'],P['max_output_tokens'])
+        self.assertEqual(received[0]['reasoning_effort'],'none')
+        self.assertFalse(received[0]['parallel_tool_calls'])
     def test_lock_changes_if_any_service_code_or_access_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);access=p/'access.json';access.write_text('{"diagnostic":1}')

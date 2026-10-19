@@ -17,10 +17,10 @@ A single tool-using model acts as the controller in each episode. This is end-to
 | Services | Persistent-write workflow; inventory hold/capture/release |
 | Development tasks | Four, excluded from the held-out matrix |
 | Held-out tasks | 32: two parameter variants for each of eight scenario families in each service |
-| Models | One pinned hosted model; one pinned open-weight model on an OpenAI-compatible endpoint |
+| Model-provider configurations | One named proprietary hosted configuration; one named open-weight configuration served through a pinned OpenAI-compatible endpoint |
 | Policies | FA-MAS contract enforcement; feature-matched model controller without enforcement |
 | Episodes | 32 tasks × two models × two policies = 128 |
-| Temperature | 0.0 |
+| Sampling / reasoning | Development-validated per-configuration settings; temperature starts at 0.0, but is not described as guaranteed determinism |
 | Per-episode limits | 12 model turns, 12 HTTP tool calls, 600-second elapsed limit checked between turns |
 | Per-model-call limits | 16,000 UTF-8 request bytes, 512 billed output tokens, 45-second request timeout |
 | Global upper bound | 1,536 model requests; additional approved USD ceiling enforced conservatively |
@@ -46,7 +46,7 @@ These checks validate the experiment infrastructure. They provide no evidence ab
 
 ## Analysis and interpretation
 
-The primary contrast is FA-MAS minus the feature-matched controller within each task/model pair. Uncertainty resamples the 16 service-by-scenario families, retaining their two variants and two models together. The report provides pooled estimates and service-specific sensitivity analyses. Exact cluster-sign randomization tests are supplementary and conditional on exchangeability; Holm adjustment covers the three outcomes within each scope. With only 16 authored clusters, intervals and tests describe this bank and do not establish population reliability. The study is bounded and has no demonstrated statistical power for small effects.
+The primary contrast is FA-MAS minus the feature-matched controller within each task and named model-provider configuration. The primary report is configuration-specific: it does not present the two configurations as independent draws from a model population or as a proprietary-versus-open-weight causal comparison. Uncertainty resamples the service-by-scenario families within each configuration, retaining both task variants and policies together. Pooled and service-specific rows are descriptive sensitivities only. Exact cluster-sign randomization tests are supplementary and conditional on exchangeability; Holm adjustment covers the three outcomes within each scope. With only 16 authored clusters, intervals and tests describe this bank and do not establish population reliability. The study is bounded and has no demonstrated statistical power for small effects.
 
 Provider failures, invalid responses, timeouts, and budget stops remain in the launched data. A partial matrix cannot enter the completed confirmatory comparison. Outcome rates must be accompanied by completion, safe-stop, unsafe-state, and operational-failure counts. No paper claim should promote this local service study into production reliability, general multi-agent superiority, or full-algorithm validation.
 
@@ -54,11 +54,13 @@ Provider failures, invalid responses, timeouts, and budget stops remain in the l
 
 The current environment has no hosted API key, pinned model settings, or supplied local inference endpoint. The runner cannot provision another person's credentials, account credits, or model server. To proceed, the author must make available:
 
-1. The exact hosted model snapshot, endpoint base including its API prefix, expected returned model ID, and `HOSTED_API_KEY` configured securely in the execution environment.
-2. The exact open-weight model/revision, a running compatible endpoint, its expected returned model ID, and any required `OPEN_WEIGHT_API_KEY`.
-3. Verified input/output billing rates, confirmation that the request-byte bound covers billed input tokens and the output parameter bounds all billed output/reasoning tokens, plus an explicitly approved USD ceiling. Independently billed server/GPU time is outside the token-cost calculation and needs its own authorization.
+1. The exact proprietary hosted model alias or snapshot, endpoint base including its API prefix, expected returned model ID, and `HOSTED_API_KEY` configured securely in the execution environment.
+2. The exact open-weight model/revision, one pinned compatible provider endpoint, its expected returned model ID, and any required `OPEN_WEIGHT_API_KEY`.
+3. Development checks confirming each endpoint accepts the frozen generic dispatcher, call-history serialization, one-action-per-turn behavior, and that model-selected operation arguments reach the service dispatcher unchanged. Explicit `finish` remains available to both policies.
+4. Development checks confirming each configuration's sampling/reasoning and output-limit fields are accepted and logged, with no silent fallback. The runner records only frozen non-secret request options; options are not copied from one provider to another without validation.
+5. Verified input/output billing rates, confirmation that the request-byte bound covers billed input tokens and the output parameter bounds all billed output/reasoning tokens, plus an explicitly approved USD ceiling. Independently billed server/GPU time is outside the token-cost calculation and needs its own authorization.
 
-Use `configs/bounded_access.example.json` as the schema; create a local access file with actual pinned non-secret settings. The API keys remain in environment variables and never enter files, locks, prompts, or logs. `base_url` must already include `/v1` if the server requires it: this runner appends `/chat/completions` once. Set `expected_response_model` when the server's returned ID differs from its requested model ID.
+Use `configs/bounded_access.example.json` as the schema; create a local access file with actual pinned non-secret settings. The API keys remain in environment variables and never enter files, locks, prompts, or logs. `base_url` must already include `/v1` if the server requires it: this runner appends `/chat/completions` once. Set `expected_response_model` when the server's returned ID differs from its requested model ID. `request_options` is a deliberately narrow per-configuration allowlist for the development-validated reasoning setting and parallel-tool-call control; it is included in the frozen manifest without credentials.
 
 For each model, the maximum token-cost reservation for the complete matrix is:
 
