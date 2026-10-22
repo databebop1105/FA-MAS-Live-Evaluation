@@ -9,7 +9,7 @@ for name in styles:
  assert a.styles[name].element.xml==b.styles[name].element.xml,name
 pdf=r/'rendered_final_verified/FA_MAS_TSC_Submission_Ready_Manuscript.pdf';p=PdfReader(pdf);assert len(p.pages)==13
 text='\n'.join(x.extract_text() for x in p.pages)
-for s in ['7.58%','150','Forty-four','No live model calls have been made']:
+for s in ['7.58%','150','Forty-nine','Development-only provider compatibility checks were performed']:
  assert s in text,s
 abstract=next(x.text for x in a.paragraphs if x.text.startswith('Abstract'))
 words=len(abstract.split());assert words<=250,words

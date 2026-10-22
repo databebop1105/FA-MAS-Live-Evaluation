@@ -1,10 +1,13 @@
 # FA-MAS bounded end-to-end live study
 
-Prepared 9 October 2026. Implementation and development verification are complete. **No live model calls or held-out model outcomes have been collected.** This is a locally prespecified protocol, not an independently registered experiment.
+Prepared 9 October 2026; status amended 22 October 2026. Development-only
+provider compatibility calls have been performed, but no held-out model outcome
+has been collected and no configuration has qualified for the frozen study.
+This is a locally prepared protocol, not an independently registered experiment.
 
 ## What changed
 
-The new runner lets a tool-calling model choose every operation from the initial task through completion or cleanup. It executes actual loopback HTTP calls into two separately implemented SQLite services. It replaces the former one-recovery-decision sandbox for this bounded study, while retaining the original unexecuted protocol as a separate historical plan. The manuscript must not report results from this study until live execution and auditing finish.
+The new runner lets a tool-calling model choose every operation from the initial task through completion or cleanup. It executes actual loopback HTTP calls into two separately implemented SQLite services. It replaces the former one-recovery-decision sandbox for this bounded study, while retaining the original unexecuted protocol as a separate historical plan. The manuscript must not report development-only outcomes as live-evaluation results; it may accurately state their pre-freeze status and must not say that no model calls were made.
 
 The first service executes a sequence of three or four persistent writes with stable intent keys, authoritative status reads, partial outcomes, compensation, and replacement. The second service allocates inventory holds and captures or releases them under SKU and capacity invariants. It uses its own stock/hold schema and handler. Initial background stock usage is included in the independent inventory judge, so another customer's inventory does not become a controller error.
 
@@ -38,7 +41,11 @@ No controller receives automatic cleanup. A stopped episode with unresolved effe
 
 ## Verification already run
 
-- 44 unit tests pass across the full repository. New tests cover multi-step HTTP execution, model-selected reconciliation and replacement, independent cleanup verdicts, SKU gates, capacity invariants, provider failures, shared prompts and schema, budgets, task separation, protocol hashing, and live-only analysis.
+- 49 unit tests pass across the full repository. They cover multi-step HTTP
+  execution, model-selected reconciliation and replacement, independent cleanup
+  verdicts, SKU gates, capacity invariants, provider failures, shared prompts
+  and schema, budgets, task separation, protocol hashing, live-only analysis,
+  and portable SQLite state-literal handling.
 - A loopback mock of an OpenAI-compatible provider performed four sequential calls with tool-response history and reconciled a lost hold reply. Its adapter was explicitly marked non-live; it made no real model requests.
 - Eight development trajectories completed under scripted actions on both services and both policies. All rows remain `ci_non_live` and all task IDs belong to the development split.
 - Live analysis rejects CI evidence, mixed locks, duplicate or incomplete matrices, different model identities, changed traces, and saved outcomes that disagree with the terminal database judge.

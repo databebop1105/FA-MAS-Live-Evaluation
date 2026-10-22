@@ -1,6 +1,9 @@
 # FA-MAS reproduction instructions
 
-The scientific evidence remains model-free. The public-tool check supplies reference actions and is not an official tau-bench agent evaluation.
+The committed scientific evidence remains model-free. Development-only provider
+compatibility calls are deliberately excluded from the reproducibility claim and
+are not a held-out live-model evaluation. The public-tool check supplies
+reference actions and is not an official tau-bench agent evaluation.
 
 ## Clean installation
 
@@ -15,7 +18,14 @@ PYTHONPATH=src .venv/bin/python scripts/verify_evidence.py
 PYTHONPATH=src .venv/bin/python -m fa_mas.bounded_e2e --mode validate
 ```
 
-The recorded clean-install audit on this host used 29 hash-locked distributions and passed 44 tests; it also replayed the 52,500 historical, 18,000 initial matched, and 18,000 corrected simulator rows byte for byte. All 150 public-tool traces reproduced exactly and workflow/inventory verdicts were rejudged. Subsequent runner safeguards add three non-live tests; the current suite has 47 tests. Reports are under `results/`. This remains same-host/interpreter verification, not independent third-party replication or cross-platform bitwise portability.
+The recorded clean-install audit on this host used 29 hash-locked distributions
+and passed 44 tests; it also replayed the 52,500 historical, 18,000 initial
+matched, and 18,000 corrected simulator rows byte for byte. All 150 public-tool
+traces reproduced exactly and workflow/inventory verdicts were rejudged. The
+current source suite contains 49 tests, including later non-live runner and
+portability coverage. Reports are under `results/`. This remains same-host
+interpreter verification, not independent third-party replication or
+cross-platform bitwise portability.
 
 The pinned upstream business-tool subset is in `third_party/tau2`, with its own MIT license and source commit. Its orchestration-heavy parent initializers are bypassed by namespace loading; imported business and utility modules are unmodified. No public dataset conversation or official benchmark reward is executed.
 

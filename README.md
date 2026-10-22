@@ -14,6 +14,8 @@ multi-agent coordination.
 | `REPRODUCTION.md` | Recreating the recorded model-free evidence and the non-live validation path |
 | `FA_MAS_Bounded_Live_Study_Protocol.md` | Scope, safeguards, cost assumptions, and launch sequence for the bounded live study |
 | `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md` | Development acceptance checks required before freezing the held-out run |
+| `docs/REVIEWER_RISK_AUDIT_2026-10-22.md` | Submission risks, evidence boundaries, and mandatory remediation |
+| `docs/EVIDENCE_PIVOT_PLAN.md` | The bounded one-configuration safety-envelope study required for a credible LLM case study |
 | `FA_MAS_Remaining_Priorities_Verification.md` | Evidence audit, limits, and work that remains outside the current artifact |
 | `SUBMISSION_READINESS.md` | Submission-facing status and author-controlled open items |
 
@@ -135,8 +137,11 @@ PYTHONPATH=src python -m fa_mas.bounded_e2e --mode validate
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode ci --output results/bounded_e2e/new_development_ci
 ```
 
-After credentials, model identifiers, provider pricing, and a development
-spending ceiling are available, run only the four development fixtures first:
+Development-only provider compatibility checks have been attempted locally.
+They are excluded from all confirmatory analysis, and no held-out live outcome
+is committed in this repository. A configuration must pass every pre-freeze
+check before any frozen run is authorized. If a fresh, permitted development
+check is needed, use only the four development fixtures:
 
 ```bash
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode development \
