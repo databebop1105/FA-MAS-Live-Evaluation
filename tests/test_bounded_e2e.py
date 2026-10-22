@@ -1,4 +1,5 @@
 import copy, hashlib, io, json, sys, tempfile, threading, unittest
+from email.message import Message
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
@@ -18,8 +19,9 @@ class BoundedTests(unittest.TestCase):
         error=bounded_e2e.HTTPError('https://provider.example/v1/chat/completions',403,'forbidden',None,io.BytesIO(body))
         detail=bounded_e2e.provider_error_detail(error,key)
         self.assertEqual(detail,'[insufficient_tier] authorization Bearer [REDACTED]; api_key=[REDACTED]')
-        malformed=bounded_e2e.HTTPError('https://provider.example',403,'forbidden',None,io.BytesIO(b'not-json'))
-        self.assertEqual(bounded_e2e.provider_error_detail(malformed,key),'unparseable provider error')
+        headers=Message();headers['Content-Type']='text/html'
+        malformed=bounded_e2e.HTTPError('https://provider.example',403,'forbidden',headers,io.BytesIO(b'<html>Forbidden</html>'))
+        self.assertEqual(bounded_e2e.provider_error_detail(malformed,key),'non-JSON provider error (text/html)')
 
     def test_clean_workflow_and_inventory_are_model_selected_multi_step_http(self):
         with services() as bases:
@@ -161,7 +163,8 @@ class BoundedTests(unittest.TestCase):
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):pass
             def do_POST(self):
-                body=json.loads(self.rfile.read(int(self.headers['Content-Length'])));received.append(body)
+                body=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+                received.append((body,{key.lower():value for key,value in self.headers.items()}))
                 action=actions[len(received)-1]
                 payload=json.dumps({'id':str(len(received)),'model':'mock-only','usage':{'prompt_tokens':40,'completion_tokens':20},
                     'choices':[{'message':{'content':None,'tool_calls':[{'id':'provider-call-'+str(len(received)),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
@@ -175,16 +178,18 @@ class BoundedTests(unittest.TestCase):
                 row=run_episode(bases['inventory'],diagnostic('inventory','lost_after_hold'),'fa_mas',model,P)
         finally:server.shutdown();server.server_close();thread.join()
         self.assertEqual(row['task_success'],1);self.assertEqual(row['evidence_class'],'ci_non_live')
-        self.assertEqual(len(received),4);self.assertEqual(len(received[-1]['messages']),8)
-        self.assertEqual(received[1]['messages'][-1]['role'],'tool')
-        self.assertIn('504',received[1]['messages'][-1]['content'])
+        self.assertEqual(len(received),4);self.assertEqual(len(received[-1][0]['messages']),8)
+        self.assertEqual(received[1][0]['messages'][-1]['role'],'tool')
+        self.assertIn('504',received[1][0]['messages'][-1]['content'])
         self.assertEqual(row['total_tokens'],240)
-        self.assertEqual(received[0]['max_tokens'],P['max_output_tokens'])
-        self.assertEqual(received[0]['reasoning_effort'],'none')
-        self.assertFalse(received[0]['parallel_tool_calls'])
-        self.assertEqual(received[1]['messages'][-2]['tool_calls'][0]['id'],'provider-call-1')
-        self.assertEqual(received[1]['messages'][-1]['tool_call_id'],'provider-call-1')
-        self.assertIsNone(received[1]['messages'][-2]['content'])
+        self.assertEqual(received[0][0]['max_tokens'],P['max_output_tokens'])
+        self.assertEqual(received[0][0]['reasoning_effort'],'none')
+        self.assertFalse(received[0][0]['parallel_tool_calls'])
+        self.assertEqual(received[0][1]['accept'],'application/json')
+        self.assertEqual(received[0][1]['user-agent'],'FA-MAS-Live-Evaluation/1.0')
+        self.assertEqual(received[1][0]['messages'][-2]['tool_calls'][0]['id'],'provider-call-1')
+        self.assertEqual(received[1][0]['messages'][-1]['tool_call_id'],'provider-call-1')
+        self.assertIsNone(received[1][0]['messages'][-2]['content'])
     def test_lock_changes_if_any_service_code_or_access_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);access=p/'access.json';access.write_text('{"diagnostic":1}')
