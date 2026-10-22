@@ -53,9 +53,9 @@ class Inventory:
                 if old:
                     if old[0]!=sku: return 409,{'error':'intent_target_mismatch'}
                     return 200,{'state':old[1],'sku':sku,'replay':True}
-                available=self.db.execute('SELECT capacity-sold-(SELECT count(*) FROM holds WHERE sku=? AND state="held") FROM stock WHERE sku=?',(sku,sku)).fetchone()[0]
+                available=self.db.execute("SELECT capacity-sold-(SELECT count(*) FROM holds WHERE sku=? AND state='held') FROM stock WHERE sku=?",(sku,sku)).fetchone()[0]
                 if available<=0: return 409,{'error':'capacity'}
-                self.db.execute('INSERT INTO holds VALUES (?, ?, "held")',(intent,sku)); self.db.commit()
+                self.db.execute("INSERT INTO holds VALUES (?, ?, 'held')",(intent,sku)); self.db.commit()
                 self.events.append({'op':op,'result':'held','sku':sku})
                 if self.fault in ('lost_after_hold','stale_read') and not self.fired:
                     self.fired=True; return 504,{'error':'reply_lost'}
@@ -65,13 +65,13 @@ class Inventory:
                 if not row or row[1]!='held': return 409,{'error':'no_active_hold'}
                 if self.fault=='capture_denied_release_unavailable':
                     self.events.append({'op':op,'result':'denied'}); return 403,{'error':'capture_denied'}
-                self.db.execute('UPDATE holds SET state="captured" WHERE intent=?',(intent,))
+                self.db.execute("UPDATE holds SET state='captured' WHERE intent=?",(intent,))
                 self.db.execute('UPDATE stock SET sold=sold+1 WHERE sku=?',(row[0],)); self.db.commit()
                 self.events.append({'op':op,'result':'captured','sku':row[0]}); return 200,{'state':'captured'}
             if op=='release':
                 if self.fault=='capture_denied_release_unavailable':
                     self.events.append({'op':op,'result':'release_failed'}); return 503,{'error':'release_unavailable'}
-                self.db.execute('UPDATE holds SET state="released" WHERE intent=? AND state="held"',(intent,)); self.db.commit()
+                self.db.execute("UPDATE holds SET state='released' WHERE intent=? AND state='held'",(intent,)); self.db.commit()
                 self.events.append({'op':op,'result':'released'}); return 200,{'state':'released'}
             return 404,{'error':'unknown_operation'}
 

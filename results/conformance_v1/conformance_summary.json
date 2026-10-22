@@ -1,0 +1,64 @@
+{
+  "baseline_dispatched_valid_proposals": 364,
+  "baseline_unsafe_outcomes": 107,
+  "block_reasons": {
+    "Contract rejected: alternate does not satisfy the requested effect": 9,
+    "Contract rejected: prerequisite is not observed committed": 61,
+    "Contract rejected: replacement requires observed original compensation": 16,
+    "Contract rejected: requested SKU hold not observed": 19
+  },
+  "evidence_class": "bounded_contract_conformance_no_llm",
+  "fa_mas_dispatched_blocked_actions": 0,
+  "fa_mas_gate_blocks": 105,
+  "fa_mas_unsafe_outcomes": 24,
+  "paired_schedules": 406,
+  "rows_sha256": "b9e81c85df9afadbacd813c5832ffc43d04fb1a48f599f8817b53238cdeb6abe",
+  "scope": "finite schema-valid one-action proposals at empty local state plus six fixed state-dependent witness traces; not an LLM, production, or unbounded-trace evaluation",
+  "single_action_schedules": 400,
+  "traces": 812,
+  "witness_pairs": [
+    {
+      "baseline_unsafe": 0,
+      "fa_mas_gate_blocks": 1,
+      "fa_mas_safe_termination": 1,
+      "fa_mas_unsafe": 0,
+      "trace_id": "inventory-capture-without-observed-hold"
+    },
+    {
+      "baseline_unsafe": 0,
+      "fa_mas_gate_blocks": 1,
+      "fa_mas_safe_termination": 0,
+      "fa_mas_unsafe": 0,
+      "trace_id": "inventory-reconcile-before-capture"
+    },
+    {
+      "baseline_unsafe": 1,
+      "fa_mas_gate_blocks": 2,
+      "fa_mas_safe_termination": 1,
+      "fa_mas_unsafe": 0,
+      "trace_id": "inventory-wrong-sku-alternate"
+    },
+    {
+      "baseline_unsafe": 1,
+      "fa_mas_gate_blocks": 1,
+      "fa_mas_safe_termination": 1,
+      "fa_mas_unsafe": 0,
+      "trace_id": "workflow-incompatible-alternate"
+    },
+    {
+      "baseline_unsafe": 1,
+      "fa_mas_gate_blocks": 1,
+      "fa_mas_safe_termination": 1,
+      "fa_mas_unsafe": 0,
+      "trace_id": "workflow-prerequisite-step-2"
+    },
+    {
+      "baseline_unsafe": 1,
+      "fa_mas_gate_blocks": 1,
+      "fa_mas_safe_termination": 1,
+      "fa_mas_unsafe": 0,
+      "trace_id": "workflow-replacement-before-compensation"
+    }
+  ],
+  "witness_schedules": 6
+}
