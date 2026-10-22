@@ -156,4 +156,5 @@ access settings, billing verification, bounds, and interpretation limits.
 Before adding credentials or freezing a live run, complete
 `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
 endpoint acceptance checks from the held-out execution.
-No live end-to-end outcomes have been collected.
+No live end-to-end outcomes are committed in this repository or reported as
+confirmatory evidence.

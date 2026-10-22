@@ -1,4 +1,4 @@
-import copy, hashlib, json, sys, tempfile, threading, unittest
+import copy, hashlib, io, json, sys, tempfile, threading, unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +12,15 @@ def diagnostic(service='workflow',fault='clean'):
     return {'task_id':'diagnostic','split':'development','service':service,'fault':fault,'length':3,'requested_sku':'sku-A','capacity':2,'variant':0}
 
 class BoundedTests(unittest.TestCase):
+    def test_provider_error_detail_is_bounded_and_redacts_credentials(self):
+        key='key_private_test_value'
+        body=json.dumps({'error':{'code':'insufficient_tier','message':f'authorization Bearer {key}; api_key={key}'}}).encode()
+        error=bounded_e2e.HTTPError('https://provider.example/v1/chat/completions',403,'forbidden',None,io.BytesIO(body))
+        detail=bounded_e2e.provider_error_detail(error,key)
+        self.assertEqual(detail,'[insufficient_tier] authorization Bearer [REDACTED]; api_key=[REDACTED]')
+        malformed=bounded_e2e.HTTPError('https://provider.example',403,'forbidden',None,io.BytesIO(b'not-json'))
+        self.assertEqual(bounded_e2e.provider_error_detail(malformed,key),'unparseable provider error')
+
     def test_clean_workflow_and_inventory_are_model_selected_multi_step_http(self):
         with services() as bases:
             for service,actions in [('workflow',[a('invoke',1),a('invoke',2),a('invoke',3),a('finish')]),('inventory',[a('hold'),a('capture'),a('finish')])]:

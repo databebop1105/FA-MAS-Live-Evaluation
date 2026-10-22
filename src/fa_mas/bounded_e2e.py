@@ -6,7 +6,7 @@ pinned access, explicit spend approval, and a code/task/prompt lock. Scripted,
 mock, and development rows can never enter confirmatory live analysis.
 """
 from __future__ import annotations
-import argparse, hashlib, json, os, random, tempfile, threading, time, platform, math
+import argparse, hashlib, json, os, random, re, tempfile, threading, time, platform, math
 from importlib.metadata import version
 from contextlib import contextmanager
 from http.server import ThreadingHTTPServer
@@ -34,6 +34,32 @@ TOOL={"type":"function","function":{"name":"execute_service_action","description
 
 class ProviderFailure(RuntimeError): pass
 class BudgetStop(RuntimeError): pass
+
+def provider_error_detail(exc,api_key):
+    """Return a short, scrubbed diagnostic from an HTTP error response.
+
+    Development records may be shared for debugging, so this deliberately
+    retains only a provider-supplied error code and message.  It never stores
+    headers or the raw response body, and it removes the configured key plus
+    common authorization-token forms before truncating the result.
+    """
+    try: raw=exc.read(2049)
+    except (OSError,ValueError): return 'error body unavailable'
+    if not raw:return 'error body unavailable'
+    try: data=json.loads(raw[:2048].decode('utf-8','replace'))
+    except (UnicodeDecodeError,json.JSONDecodeError): return 'unparseable provider error'
+    error=data.get('error',data) if isinstance(data,dict) else {}
+    if not isinstance(error,dict):return 'provider did not supply a structured error'
+    message=error.get('message')
+    if not isinstance(message,str) or not (message:=message.strip()):return 'provider did not supply an error message'
+    if api_key:message=message.replace(api_key,'[REDACTED]')
+    message=re.sub(r'(?i)(bearer\s+)[A-Za-z0-9._-]+',r'\1[REDACTED]',message)
+    message=re.sub(r'(?i)(api[_ -]?key\s*(?:=|:)?\s*)[A-Za-z0-9._-]+',r'\1[REDACTED]',message)
+    message=re.sub(r'\b(?:sk|key)_[A-Za-z0-9_-]{6,}', '[REDACTED]', message)
+    message=' '.join(message.split())[:240]
+    code=error.get('code')
+    prefix=f'[{code}] ' if isinstance(code,str) and re.fullmatch(r'[A-Za-z0-9_.:-]{1,64}',code) else ''
+    return prefix+message
 
 def canonical(value): return json.dumps(value,sort_keys=True,separators=(',',':'))
 def digest(value): return hashlib.sha256(canonical(value).encode()).hexdigest()
@@ -88,7 +114,8 @@ class LiveModel:
         try:
             with urlopen(Request(path,payload,headers,method='POST'),timeout=self.protocol['provider_timeout_seconds']) as response:
                 data=json.load(response)
-        except HTTPError as exc: raise ProviderFailure(f'Provider HTTP {exc.code}') from None
+        except HTTPError as exc:
+            raise ProviderFailure(f'Provider HTTP {exc.code}: {provider_error_detail(exc,key)}') from None
         except (URLError,TimeoutError,OSError,json.JSONDecodeError) as exc: raise ProviderFailure(type(exc).__name__) from None
         if not isinstance(data,dict):raise ProviderFailure('Provider returned a non-object response')
         usage=data.get('usage',{})

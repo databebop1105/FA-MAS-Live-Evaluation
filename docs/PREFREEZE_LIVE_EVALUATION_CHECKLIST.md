@@ -18,6 +18,9 @@ does not authorize a held-out run by itself.
 - [ ] The four development tasks complete with resettable service state. Record
   malformed arguments, refusals, truncation, tool-call cardinality, provider
   failures, and all token usage.
+- [ ] Development failure records retain only a bounded, scrubbed provider error
+  code/message. Never retain authorization headers, API keys, or raw provider
+  response bodies in files that could be shared.
 - [ ] The 512-token output limit is retained only if both configurations
   produce valid actions. Any limit or reasoning-setting change is a dated
   protocol amendment made before freezing.
