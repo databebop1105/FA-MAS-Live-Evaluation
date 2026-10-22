@@ -50,10 +50,11 @@ not translate bounded enumeration into â€œFA-MAS guarantees production safety.â€
 
 ## Phase B - establish one valid LLM integration
 
-Use **one** named model-provider configuration. The hosted OpenAI configuration
-is the only candidate currently worth considering because the Together/Qwen
-configuration did not clear development preflight. Do not switch models or
-providers repeatedly after observing held-out outcomes.
+Use **one** named model-provider configuration. The only candidate is OpenAI
+GPT-6 Luna through Chat Completions with `reasoning_effort: "none"`, as defined
+in `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`. Together/Qwen did not clear
+development preflight. Do not switch models or providers repeatedly after
+observing held-out outcomes.
 
 Development acceptance is about the integration, not about achieving a good
 task score. All of the following must be true across the four development

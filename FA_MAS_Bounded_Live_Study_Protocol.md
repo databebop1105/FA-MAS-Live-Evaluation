@@ -1,9 +1,12 @@
 # FA-MAS bounded end-to-end live study
 
-Prepared 9 October 2026; status amended 22 October 2026. Development-only
-provider compatibility calls have been performed, but no held-out model outcome
-has been collected and no configuration has qualified for the frozen study.
-This is a locally prepared protocol, not an independently registered experiment.
+Prepared 9 October 2026; status amended 22 October 2026. This document records
+the earlier two-provider protocol for provenance. It is superseded for new
+execution by `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`, which defines the
+active one-OpenAI-configuration protocol. Development-only provider
+compatibility calls have been performed, but no held-out model outcome has been
+collected and no configuration has qualified for a frozen study. Neither
+protocol is independently registered.
 
 ## What changed
 

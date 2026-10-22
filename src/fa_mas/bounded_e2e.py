@@ -7,6 +7,7 @@ mock, and development rows can never enter confirmatory live analysis.
 """
 from __future__ import annotations
 import argparse, hashlib, json, os, random, re, tempfile, threading, time, platform, math
+from collections import Counter
 from importlib.metadata import version
 from contextlib import contextmanager
 from http.server import ThreadingHTTPServer
@@ -354,8 +355,11 @@ def run_episode(base,task,policy,model,protocol):
         messages.append({'role':'tool','tool_call_id':call_id,'content':canonical(observation)})
         if episode.finished:status='finished';break
     state=episode.snapshot();verdict=episode.judge(state)
+    model_spec=getattr(model,'spec',{})
+    model_class=model_spec.get('class','test')
     return {'task_id':task['task_id'],'service':task['service'],'fault':task['fault'],'variant':task['variant'],
-            'policy':policy,'model_id':model.model_id,'model_class':getattr(model,'spec',{}).get('class','test'),
+            'policy':policy,'model_id':model.model_id,'model_class':model_class,
+            'model_configuration_id':model_spec.get('configuration_id',model_class),
             'evidence_class':getattr(model,'evidence_class','live_e2e_local_services' if model.is_live else 'ci_non_live'),
             'status':status,'error':error,'model_responses':real_responses,'turns':len(events),'tool_calls':episode.calls,
             'total_tokens':tokens,'wall_ms':round((time.perf_counter()-started)*1000,3),
@@ -369,9 +373,37 @@ def load_tasks(path,split):
     if not tasks:raise ValueError('Empty task split')
     return tasks
 
-def validate_access(access,require_credentials=False,require_confirmatory_guarantees=True):
+def model_classes(protocol):
+    """Return the named configuration classes declared by a protocol."""
+    classes=protocol.get('model_configurations')
+    if not isinstance(classes,list) or not 1<=len(classes)<=2:
+        raise ValueError('Protocol must declare one or two model configurations')
+    if any(kind not in ('hosted','open_weight') for kind in classes) or len(set(classes))!=len(classes):
+        raise ValueError('Protocol model configurations must be distinct hosted/open_weight classes')
+    return tuple(classes)
+
+def validate_protocol(protocol,development,confirmatory):
+    versions={'bounded-e2e-v1','bounded-e2e-openai-single-v1'}
+    if protocol.get('protocol_version') not in versions or tuple(protocol.get('policies',()))!=POLICIES:
+        raise ValueError('Unexpected protocol')
+    classes=model_classes(protocol)
+    expected_development=len(development)*len(POLICIES)*len(classes)
+    expected_confirmatory=len(confirmatory)*len(POLICIES)*len(classes)
+    if (protocol.get('maximum_development_episodes')!=expected_development or
+            protocol.get('maximum_confirmatory_episodes')!=expected_confirmatory):
+        raise ValueError('Protocol/task count mismatch')
+    if (protocol.get('maximum_development_model_calls')!=expected_development*protocol.get('max_turns') or
+            protocol.get('maximum_confirmatory_model_calls')!=expected_confirmatory*protocol.get('max_turns')):
+        raise ValueError('Protocol/model-call bound mismatch')
+    return classes
+
+def validate_access(access,require_credentials=False,require_confirmatory_guarantees=True,
+                    expected_model_classes=('hosted','open_weight')):
     models=access.get('models',[])
-    if len(models)!=2 or {m.get('class') for m in models}!={'hosted','open_weight'}:raise ValueError('Exactly one hosted and one open-weight model required')
+    expected=tuple(expected_model_classes)
+    if (not expected or Counter(m.get('class') for m in models)!=Counter(expected)):
+        raise ValueError('Access models do not match the protocol configuration classes')
+    configuration_ids=[]
     for m in models:
         if not m.get('model_id') or '${' in m['model_id'] or 'REPLACE' in m['model_id']:raise ValueError('Pin exact model identifier')
         parsed=urlparse(m.get('base_url',''))
@@ -396,10 +428,20 @@ def validate_access(access,require_credentials=False,require_confirmatory_guaran
             raise ValueError('Unsupported reasoning effort')
         if 'parallel_tool_calls' in options and type(options['parallel_tool_calls']) is not bool:
             raise ValueError('parallel_tool_calls must be boolean')
+        if 'configuration_id' in m:
+            if not isinstance(m['configuration_id'],str) or not re.fullmatch(r'[a-z0-9][a-z0-9_-]{2,80}',m['configuration_id']):
+                raise ValueError('configuration_id must be a stable lowercase identifier')
+            configuration_ids.append(m['configuration_id'])
+        if 'provider' in m and (not isinstance(m['provider'],str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9 ._-]{1,80}',m['provider'])):
+            raise ValueError('provider must be a short non-secret label')
+    if configuration_ids and len(configuration_ids)!=len(models):
+        raise ValueError('Either every model needs a configuration_id or none do')
+    if len(configuration_ids)!=len(set(configuration_ids)):
+        raise ValueError('Duplicate configuration_id')
 
 def public_model_spec(model):
     """Return the frozen, non-secret fields that identify a live configuration."""
-    fields=('class','model_id','expected_response_model','base_url','input_usd_per_million',
+    fields=('configuration_id','provider','class','model_id','expected_response_model','base_url','input_usd_per_million',
             'output_usd_per_million','output_token_parameter','temperature','request_options','preserve_reasoning_fields','assistant_tool_content',
             'byte_token_upper_bound_verified','output_billing_ceiling_verified')
     return {field:model[field] for field in fields if field in model}
@@ -413,26 +455,49 @@ def freeze_hash(protocol_path,tasks_path,access_path):
 def runtime_fingerprint():
     return {'python':platform.python_version(),'packages':{p:version(p) for p in ('numpy','pandas','scipy','pyyaml','matplotlib')}}
 
+def _validated_preflight_report(path,expected_protocol_sha256,expected_model,expected_episodes):
+    if path is None:raise ValueError('A passed preflight report is required before this protocol can freeze')
+    try:report=json.loads(path.read_text())
+    except (OSError,json.JSONDecodeError) as exc:raise ValueError('Preflight report is unreadable') from exc
+    if report.get('report_version')!='openai-single-preflight-v1' or report.get('status')!='passed':
+        raise ValueError('Preflight report did not pass')
+    if report.get('development_protocol_sha256')!=expected_protocol_sha256:
+        raise ValueError('Preflight report does not match the exact source/configuration hash')
+    if (report.get('configuration')!=public_model_spec(expected_model) or
+            report.get('planned_episodes')!=expected_episodes or
+            report.get('observed_episodes')!=expected_episodes or
+            report.get('failures')!=[] or
+            not isinstance(report.get('runs_sha256'),str) or not re.fullmatch(r'[0-9a-f]{64}',report['runs_sha256'])):
+        raise ValueError('Preflight report lacks complete, matching acceptance evidence')
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--mode',choices=('validate','freeze','development','ci','live'),default='validate')
     parser.add_argument('--protocol',default=str(ROOT/'configs/bounded_e2e_v1.json'));parser.add_argument('--tasks',default=str(ROOT/'configs/bounded_tasks_v1.jsonl'))
     parser.add_argument('--access',default=str(ROOT/'configs/bounded_access.example.json'));parser.add_argument('--output',default=str(ROOT/'results/bounded_e2e'))
     parser.add_argument('--approve-spend-usd',type=float,default=None,help='Explicitly authorized API ceiling; required for live mode')
+    parser.add_argument('--preflight-report',type=Path,default=None,help='Passed development preflight report required by single-configuration protocols')
     args=parser.parse_args();pp,tp,ap=map(Path,(args.protocol,args.tasks,args.access));protocol=json.loads(pp.read_text());out=Path(args.output)
     dev=load_tasks(tp,'development');held=load_tasks(tp,'confirmatory')
-    if protocol['protocol_version']!='bounded-e2e-v1' or tuple(protocol['policies'])!=POLICIES:raise ValueError('Unexpected protocol')
-    expected=len(held)*len(POLICIES)*2;development_expected=len(dev)*len(POLICIES)*2
-    if expected!=protocol['maximum_confirmatory_episodes'] or development_expected!=protocol['maximum_development_episodes']:
-        raise ValueError('Protocol/task count mismatch')
+    classes=validate_protocol(protocol,dev,held)
+    expected=len(held)*len(POLICIES)*len(classes);development_expected=len(dev)*len(POLICIES)*len(classes)
     if args.mode=='validate':
         print(json.dumps({'status':'prepared_live_access_pending','development_tasks':len(dev),'held_out_tasks':len(held),'episodes':expected,'maximum_calls':expected*protocol['max_turns'],'is_registered':False},indent=2));return
-    lock_path=pp.with_name('bounded_e2e_lock.json')
+    lock_path=pp.with_name(pp.stem+'_lock.json')
     if args.mode in ('freeze','development','live'):
         access=json.loads(ap.read_text());confirmatory=args.mode in ('freeze','live')
-        validate_access(access,require_credentials=args.mode in ('development','live'),require_confirmatory_guarantees=confirmatory);hash_value=freeze_hash(pp,tp,ap)
+        report_required=bool(protocol.get('require_preflight_report',False))
+        validate_access(access,require_credentials=args.mode in ('development','live'),
+                        require_confirmatory_guarantees=confirmatory and not report_required,
+                        expected_model_classes=classes);hash_value=freeze_hash(pp,tp,ap)
         if args.mode=='freeze':
             if lock_path.exists():raise RuntimeError('Protocol lock already exists; do not overwrite after execution')
-            lock_path.write_text(json.dumps({'protocol_sha256':hash_value,'frozen_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'models':[m['model_id'] for m in access['models']]},indent=2)+'\n');print('Protocol frozen; no model calls made');return
+            preflight_sha=(_validated_preflight_report(args.preflight_report,hash_value,access['models'][0],development_expected)
+                           if report_required else None)
+            lock={'protocol_sha256':hash_value,'frozen_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
+                  'models':[m['model_id'] for m in access['models']]}
+            if preflight_sha:lock['preflight_report_sha256']=preflight_sha
+            lock_path.write_text(json.dumps(lock,indent=2)+'\n');print('Protocol frozen; no model calls made');return
         if args.mode=='live' and (not lock_path.exists() or json.loads(lock_path.read_text()).get('protocol_sha256')!=hash_value):raise RuntimeError('Freeze exact code, tasks, protocol, and access before live execution')
         if args.approve_spend_usd is None or not math.isfinite(args.approve_spend_usd) or args.approve_spend_usd<=0:raise ValueError('Explicit positive approved spending ceiling required')
         max_calls=protocol['maximum_confirmatory_model_calls'] if args.mode=='live' else protocol['maximum_development_model_calls']
@@ -443,7 +508,7 @@ def main():
     out.mkdir(parents=True,exist_ok=True);filename=out/({'live':'live_runs.jsonl','development':'development_live_runs.jsonl','ci':'ci_runs.jsonl'}[args.mode])
     if filename.exists():raise RuntimeError('Output already exists; refusing to overwrite or repeat launched episodes')
     if args.mode=='live':
-        spent_marker=pp.with_name('bounded_e2e_execution_started.json')
+        spent_marker=pp.with_name(pp.stem+'_execution_started.json')
         if spent_marker.exists():raise RuntimeError('Confirmatory protocol already launched; a new output folder cannot authorize a rerun')
         with spent_marker.open('x') as marker:
             marker.write(canonical({'protocol_sha256':hash_value,'output':str(filename),'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())})+'\n')
