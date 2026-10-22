@@ -1,0 +1,13 @@
+scope,metric,fa_minus_baseline,ci_low,ci_high,cluster_sign_p,clusters,pairs,holm_p
+openai_gpt_6_luna_chat_none_configuration,task_success,0.0,0.0,0.0,1.0,16,32,1.0
+openai_gpt_6_luna_chat_none_configuration,acceptable_outcome,0.03125,-0.0625,0.125,1.0,16,32,1.0
+openai_gpt_6_luna_chat_none_configuration,unsafe_outcome,-0.03125,-0.125,0.0625,1.0,16,32,1.0
+pooled_descriptive,task_success,0.0,0.0,0.0,1.0,16,32,1.0
+pooled_descriptive,acceptable_outcome,0.03125,-0.0625,0.12578124999998863,1.0,16,32,1.0
+pooled_descriptive,unsafe_outcome,-0.03125,-0.125,0.0625,1.0,16,32,1.0
+workflow_descriptive,task_success,0.0,0.0,0.0,1.0,8,16,1.0
+workflow_descriptive,acceptable_outcome,0.0625,-0.125,0.25,1.0,8,16,1.0
+workflow_descriptive,unsafe_outcome,-0.0625,-0.25,0.125,1.0,8,16,1.0
+inventory_descriptive,task_success,0.0,0.0,0.0,1.0,8,16,1.0
+inventory_descriptive,acceptable_outcome,0.0,0.0,0.0,1.0,8,16,1.0
+inventory_descriptive,unsafe_outcome,0.0,0.0,0.0,1.0,8,16,1.0

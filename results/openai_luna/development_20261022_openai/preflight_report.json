@@ -1,0 +1,36 @@
+{
+  "configuration": {
+    "assistant_tool_content": "provider",
+    "base_url": "https://api.openai.com/v1",
+    "byte_token_upper_bound_verified": false,
+    "class": "hosted",
+    "configuration_id": "openai_gpt_6_luna_chat_none",
+    "expected_response_model": "gpt-6-luna",
+    "input_usd_per_million": 0.1,
+    "model_id": "gpt-6-luna",
+    "output_billing_ceiling_verified": false,
+    "output_token_parameter": "max_completion_tokens",
+    "output_usd_per_million": 0.5,
+    "preserve_reasoning_fields": false,
+    "provider": "OpenAI",
+    "request_options": {
+      "parallel_tool_calls": false,
+      "reasoning_effort": "none"
+    },
+    "temperature": 0.0
+  },
+  "development_protocol_sha256": "ff14f48fe3b01871675395424de1cfd9e7a08f3742bcc80466c15e2eb32786e4",
+  "failures": [],
+  "observed_episodes": 8,
+  "operations_observed": [
+    "finish",
+    "hold",
+    "invoke",
+    "status"
+  ],
+  "planned_episodes": 8,
+  "report_version": "openai-single-preflight-v1",
+  "runs_sha256": "4bc7b09d98f4687476a0ee8350c0fe3f23f05fbb4d2830a3bcd5cb3c4dc22a5a",
+  "scope": "development-only integration acceptance; not held-out outcome evidence",
+  "status": "passed"
+}

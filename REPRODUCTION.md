@@ -1,9 +1,12 @@
 # FA-MAS reproduction instructions
 
-The committed scientific evidence remains model-free. Development-only provider
-compatibility calls are deliberately excluded from the reproducibility claim and
-are not a held-out live-model evaluation. The public-tool check supplies
-reference actions and is not an official tau-bench agent evaluation.
+The committed evidence includes the model-free simulator and local-service
+studies plus one frozen OpenAI live-model gate ablation. The live result is a
+bounded integration study on authored local services, not a general model or
+provider comparison. Reproducing that result requires legitimate access to the
+named model configuration; it must be audited from the archived sanitized
+records rather than re-run. The public-tool check supplies reference actions
+and is not an official tau-bench agent evaluation.
 
 ## Clean installation
 
@@ -37,13 +40,32 @@ proposal, gate, dispatch, service-observation, terminal-state, and digest
 records. The resulting report is model-free and bounded; it does not establish
 properties of arbitrary traces, models, or production services.
 
+## Re-derive the frozen live analysis
+
+This command reads the committed sanitized trajectories and does not contact a
+provider, require a credential, alter held-out tasks, or rerun the one-time
+matrix. Use a new output directory to preserve the committed analysis files.
+
+```bash
+PYTHONPATH=src .venv/bin/python -m fa_mas.bounded_analysis \
+  --runs results/openai_luna/confirmatory_20261022_openai/live_runs.jsonl \
+  --manifest results/openai_luna/confirmatory_20261022_openai/live_manifest.json \
+  --tasks configs/bounded_tasks_v1.jsonl \
+  --output /tmp/fa_mas_openai_live_analysis
+```
+
+Compare the resulting CSVs with
+`results/openai_luna/confirmatory_20261022_openai/analysis/`. This validates the
+recorded gate-ablation analysis, but it is not an independent replication or a
+new model run.
+
 The container recipe pins its Linux amd64 base image by digest and enforces wheel hashes. It has not been built: Docker is unavailable here. The dependency lock covers executable evaluation, not Word/LibreOffice manuscript rendering, which additionally needs python-docx and the official template.
 
 ## Evidence revisions
 
 `results/runs.csv` remains the historical 52,500-row study. `results/matched_controls/` retains the initial negative strict-judge sensitivity. `results/matched_controls_v2/` adds a separately labeled effect-aware defect correction. Its changes are compensation prerequisites, shared selection/budgets and correct judgment of detected unauthorized execution. No older CSV is silently relabeled. Historical pre-correction source is retained under `historical_source/`.
 
-Regenerating a study intentionally overwrites its own result folder. Run regeneration in a separate copy if preserving originals. Read-only replay writes only verification reports. No command above calls a live model or modifies held-out tasks. The separately budgeted live development path and its freeze requirements are documented in `FA_MAS_Bounded_Live_Study_Protocol.md`; it is intentionally not part of the reproducibility commands above.
+Regenerating a study intentionally overwrites its own result folder. Run regeneration in a separate copy if preserving originals. Read-only replay writes only verification reports. No command above calls a live model or modifies held-out tasks. The completed one-time live protocol, its freeze hashes, and sanitized records are documented in `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md` and `results/openai_luna/`; it is intentionally not included in the replay commands above.
 
 ## Release facts still required
 

@@ -1,7 +1,7 @@
 # FA-MAS remaining-priorities verification
 
-Evidence audit baseline: 9 October 2026. Development-harness status updated 19
-October 2026. This is not acceptance certification.
+Evidence audit baseline: 9 October 2026. Live-study status updated 22 October
+2026. This is not acceptance certification.
 
 ## Resolved in this revision
 
@@ -16,18 +16,22 @@ October 2026. This is not acceptance certification.
   52 tests, including later non-live runner and portability coverage. This is
   same-host clean installation, not independent third-party replication.
 - Added 18 hypothetical power-planning scenarios. Reference approximations flag poor sensitivity to a two-percentage-point difference. Inputs are assumptions; this is not observed power or the exact planned live statistical test.
+- Completed a bounded live-model gate ablation: OpenAI GPT-6 Luna through Chat
+  Completions completed an eight-trajectory development preflight, then 64
+  frozen held-out local-service trajectories. All rows were retained: 52
+  explicit finishes, 12 turn limits, and no provider or budget stops. Task
+  success was unchanged; the +3.125-point acceptable-outcome and -3.125-point
+  unsafe-outcome FA-MAS contrasts have 16-cluster intervals spanning zero.
 - Updated the official-template manuscript, cover-letter draft, reproduction instructions and unconfirmed author-input form. The final PDF is 13 pages, within the checked 14-page ceiling; every page was visually inspected. This does not certify all final portal requirements.
 
 ## Remaining scientific work
 
-1. Live study: development-only real-model compatibility calls were performed,
-   but no held-out model outcome exists and neither tested configuration cleared
-   every pre-freeze acceptance check. The next eligible design is a single named
-   model-provider configuration, not a provider comparison. Needed: a stable
-   integration, verified billing bounds, a positive approved USD ceiling, a
-   reviewed credential-free frozen access configuration, and a protocol lock.
-   Never put credentials in the manuscript or shared input form. Retain every
-   launched held-out episode, including provider failures, in the one frozen run.
+1. Live study reporting: preserve the passed development report, exact lock,
+   execution-start marker, 64 trajectory records, manifest, and terminal-state
+   analysis. Describe this as one named model-provider configuration and a gate
+   ablation, not a vendor comparison, external benchmark, or broad FA-MAS
+   superiority result. Never put credentials in the manuscript or shared input
+   form.
 2. Power/generalization: 16 authored service/fault clusters cannot support population-level or adequately powered small-effect claims. Consider additional genuinely different service families before freezing; disclose amendments and cost. Public component checks reduce shared-source dependence but do not establish conversational generality.
 3. Full architecture: subgraph enumeration, calibrated diagnosis and multi-agent coordination remain proposed. Current claims cover reduced gates and finite-action selection only.
 4. Independent replication, a built container, archival DOI and rights-cleared artifact license remain absent. A pinned container recipe is supplied but was not built.
@@ -38,6 +42,6 @@ Confirm all authors/order/affiliations/contact information/contributions/consent
 
 ## Evidence locations
 
-Corrected study: results/matched_controls_v2. Public tools: results/external_services. Fresh-install record: results/clean_install_verification.json. Replay: results/evidence_verification.json. Planning: results/power_planning. Non-live development CI: results/bounded_e2e/corrected_development_ci. Source/data pin: third_party/tau2/SOURCE.json. Reproduction: REPRODUCTION.md.
+Corrected study: results/matched_controls_v2. Public tools: results/external_services. Fresh-install record: results/clean_install_verification.json. Replay: results/evidence_verification.json. Planning: results/power_planning. Live preflight and matrix: results/openai_luna. Source/data pin: third_party/tau2/SOURCE.json. Reproduction: REPRODUCTION.md.
 
 No acceptance guarantee is justified. The strongest supported case is transparent, reproducible mechanism evidence with preserved negative findings and explicit limits.
