@@ -102,12 +102,14 @@ class BoundedTests(unittest.TestCase):
         with self.assertRaises(ValueError):validate_access(json.loads((ROOT/'configs/bounded_access.example.json').read_text()))
     def test_request_options_are_limited_to_frozen_provider_controls(self):
         valid={'models':[
-            {'class':'hosted','model_id':'hosted-snapshot','base_url':'https://host.example/v1','api_key_env':'HOSTED_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_completion_tokens','request_options':{'reasoning_effort':'none','parallel_tool_calls':False},'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True},
-            {'class':'open_weight','model_id':'open-weight-revision','base_url':'https://open.example/v1','api_key_env':'OPEN_WEIGHT_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_tokens','request_options':{},'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True}
+            {'class':'hosted','model_id':'hosted-snapshot','base_url':'https://host.example/v1','api_key_env':'HOSTED_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_completion_tokens','request_options':{'reasoning_effort':'none','parallel_tool_calls':False},'preserve_reasoning_fields':False,'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True},
+            {'class':'open_weight','model_id':'open-weight-revision','base_url':'https://open.example/v1','api_key_env':'OPEN_WEIGHT_API_KEY','input_usd_per_million':1,'output_usd_per_million':1,'output_token_parameter':'max_tokens','request_options':{},'preserve_reasoning_fields':True,'byte_token_upper_bound_verified':True,'output_billing_ceiling_verified':True}
         ]}
         validate_access(valid)
         self.assertEqual(public_model_spec(valid['models'][0])['request_options']['reasoning_effort'],'none')
         valid['models'][1]['request_options']={'model':'replacement'}
+        with self.assertRaises(ValueError):validate_access(valid)
+        valid['models'][1]['request_options']={};valid['models'][1]['preserve_reasoning_fields']='yes'
         with self.assertRaises(ValueError):validate_access(valid)
     def test_development_access_permits_pending_confirmatory_billing_guarantees(self):
         access={'models':[
@@ -167,10 +169,10 @@ class BoundedTests(unittest.TestCase):
                 received.append((body,{key.lower():value for key,value in self.headers.items()}))
                 action=actions[len(received)-1]
                 payload=json.dumps({'id':str(len(received)),'model':'mock-only','usage':{'prompt_tokens':40,'completion_tokens':20},
-                    'choices':[{'message':{'content':None,'tool_calls':[{'id':'provider-call-'+str(len(received)),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
+                    'choices':[{'message':{'content':None,'reasoning':'opaque test rationale','tool_calls':[{'id':'provider-call-'+str(len(received)),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
                 self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
         server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,kwargs={'poll_interval':.02},daemon=True);thread.start()
-        spec={'model_id':'mock-only','class':'test','base_url':f'http://127.0.0.1:{server.server_address[1]}/v1','api_key_env':'UNSET_DIAGNOSTIC_KEY','input_usd_per_million':0,'output_usd_per_million':0,'request_options':{'reasoning_effort':'none','parallel_tool_calls':False}}
+        spec={'model_id':'mock-only','class':'test','base_url':f'http://127.0.0.1:{server.server_address[1]}/v1','api_key_env':'UNSET_DIAGNOSTIC_KEY','input_usd_per_million':0,'output_usd_per_million':0,'request_options':{'reasoning_effort':'none','parallel_tool_calls':False},'preserve_reasoning_fields':True}
         class NonLiveWireModel(LiveModel):is_live=False
         model=NonLiveWireModel(spec,P,Budget(12,1,[spec]))
         try:
@@ -190,6 +192,8 @@ class BoundedTests(unittest.TestCase):
         self.assertEqual(received[1][0]['messages'][-2]['tool_calls'][0]['id'],'provider-call-1')
         self.assertEqual(received[1][0]['messages'][-1]['tool_call_id'],'provider-call-1')
         self.assertIsNone(received[1][0]['messages'][-2]['content'])
+        self.assertEqual(received[1][0]['messages'][-2]['reasoning'],'opaque test rationale')
+        self.assertNotIn('reasoning',row['events'][0]['model'])
     def test_lock_changes_if_any_service_code_or_access_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);access=p/'access.json';access.write_text('{"diagnostic":1}')
