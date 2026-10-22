@@ -1,19 +1,18 @@
 # FA-MAS research artifact
 
 This repository contains model-free mechanism studies, deterministic service
-checks, and a bounded live-model evaluation harness for the FA-MAS paper. The
-committed evidence does not include live-model outcomes. The live harness is
-prepared for development-only compatibility checks and a later, separately
-frozen confirmatory run; it is not evidence of production reliability or
-multi-agent coordination.
+checks, and one bounded live-model gate ablation for the FA-MAS paper. The live
+evidence is a single frozen OpenAI GPT-6 Luna configuration operating authored
+local HTTP/SQLite services; it is not evidence of production reliability,
+model-family behavior, or multi-agent coordination.
 
 ## Documentation map
 
 | Document | Use it for |
 |---|---|
-| `REPRODUCTION.md` | Recreating the recorded model-free evidence and the non-live validation path |
-| `FA_MAS_Bounded_Live_Study_Protocol.md` | Scope, safeguards, cost assumptions, and launch sequence for the bounded live study |
-| `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md` | Development acceptance checks required before freezing the held-out run |
+| `REPRODUCTION.md` | Replaying model-free evidence and re-deriving the frozen live analysis without a provider call |
+| `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md` | Frozen OpenAI configuration, passed preflight, cost accounting, and interpretation limits |
+| `results/openai_luna/confirmatory_20261022_openai/REPORT.md` | Audited live gate-ablation result and artifact inventory |
 | `docs/REVIEWER_RISK_AUDIT_2026-10-22.md` | Submission risks, evidence boundaries, and mandatory remediation |
 | `docs/EVIDENCE_PIVOT_PLAN.md` | The bounded one-configuration safety-envelope study required for a credible LLM case study |
 | `results/conformance_v1/REPORT.md` | Model-free bounded conformance evidence for the implemented contract gates |
@@ -47,29 +46,25 @@ intervals, plots, and a Markdown report to `results/`.
 
 The repository retains an earlier version-pinned controller harness with
 resettable transactional state and deterministic post-run judges. The bounded
-end-to-end study documented below is the current path for any future live-model
-work; this historical harness is retained for provenance rather than used to
-make new live claims.
+end-to-end study documented below supersedes this historical path for the one
+completed live-model case study; this harness is retained only for provenance.
 
-Validate the Tier-2 protocol and task split:
+Validate the historical Tier-2 protocol and task split:
 
 ```bash
 PYTHONPATH=src python -m fa_mas.live_tier --mode validate
 ```
 
-Exercise the complete Tier-2 control path without making model calls:
+Exercise the historical Tier-2 control path without making model calls:
 
 ```bash
 PYTHONPATH=src python -m fa_mas.live_tier --mode ci
 ```
 
-Before a confirmatory live run, replace every `${...}` model and endpoint
-placeholder in `configs/live_model_tier_v1.yaml`, set only the named credential
-variables, and run `--mode freeze` to create the protocol lock. Then run
-`--mode live`. The runner
-rejects unpinned model identifiers, uses only the confirmatory task split, and
-labels scripted CI rows `ci_non_live` so they cannot be reported as live-model
-evidence.
+This historical runner remains available for non-live validation and provenance;
+it is not the executed OpenAI protocol and must not be used to create an
+additional confirmatory result. The frozen execution record is documented in
+`docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`.
 
 ## Local HTTP service evaluation
 
@@ -158,10 +153,10 @@ PYTHONPATH=src python -m fa_mas.bounded_e2e --mode validate
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode ci --output results/bounded_e2e/new_development_ci
 ```
 
-Development-only provider compatibility checks have been attempted locally.
-They are excluded from all confirmatory analysis, and no held-out live outcome
-is committed in this repository. The OpenAI candidate must pass the reviewed
-development preflight before any frozen run is authorized:
+The OpenAI configuration passed its reviewed eight-trajectory development
+preflight and then completed the one permitted frozen 64-trajectory matrix.
+The complete records are under `results/openai_luna/`; do not re-run the
+commands below, which are retained only to document the executed sequence:
 
 ```bash
 FA_MAS_OPENAI_API_KEY="$(security find-generic-password -a "$USER" -s "FA-MAS-OPENAI-EVAL" -w)" \
@@ -172,20 +167,15 @@ PYTHONPATH=src python -m fa_mas.bounded_e2e --mode development \
   --output results/openai_luna/development_YYYYMMDD
 ```
 
-That mode produces eight policy/configuration episodes under a 96-call cap. Its
-rows are intentionally excluded from confirmatory analysis. A passed
-machine-readable preflight report is required before the 64-trajectory matrix
-can freeze and run.
+Development evidence remains excluded from the confirmatory analysis. The
+resulting matrix had 52 explicit finishes, 12 turn limits, no provider or budget
+stops, and 64 retained trajectories. Its paired task-success contrast was zero;
+the acceptable-outcome and unsafe-outcome differences were both 3.125 percentage
+points in FA-MAS's direction, with cluster-resampled intervals spanning zero.
 
-See `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md` for the exact launch
-commands, model settings, preflight gate, cost ceilings, and interpretation
-limits. `FA_MAS_Bounded_Live_Study_Protocol.md` retains the earlier two-provider
-plan for provenance only.
-Before adding credentials or freezing a live run, complete
-`docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
-endpoint acceptance checks from the held-out execution.
-Provider-specific assistant tool-call continuation formatting is a declared,
-tested access setting; it must not be inferred from or written into saved model
-traces.
-No live end-to-end outcomes are committed in this repository or reported as
-confirmatory evidence.
+See `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md` for the executed
+configuration, preflight gate, cost accounting, and interpretation limits.
+`FA_MAS_Bounded_Live_Study_Protocol.md` retains the earlier two-provider plan
+for provenance only. Provider-specific assistant tool-call continuation
+formatting is a declared, tested access setting; it is not inferred from or
+written into saved model text.

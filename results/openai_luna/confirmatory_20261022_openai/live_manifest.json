@@ -1,0 +1,50 @@
+{
+  "protocol_sha256": "ff14f48fe3b01871675395424de1cfd9e7a08f3742bcc80466c15e2eb32786e4",
+  "evidence_class": "live_e2e_local_services",
+  "planned_episodes": 64,
+  "launched_episodes": 64,
+  "complete_matrix": true,
+  "live_responses": 607,
+  "budget": {
+    "max_calls": 768,
+    "max_usd": 2.0,
+    "calls": 607,
+    "reserved_usd": 1.126592,
+    "reported_usd": 0.055423000000000014,
+    "tokens": 466606
+  },
+  "models": [
+    {
+      "configuration_id": "openai_gpt_6_luna_chat_none",
+      "provider": "OpenAI",
+      "class": "hosted",
+      "model_id": "gpt-6-luna",
+      "expected_response_model": "gpt-6-luna",
+      "base_url": "https://api.openai.com/v1",
+      "input_usd_per_million": 0.1,
+      "output_usd_per_million": 0.5,
+      "output_token_parameter": "max_completion_tokens",
+      "temperature": 0.0,
+      "request_options": {
+        "reasoning_effort": "none",
+        "parallel_tool_calls": false
+      },
+      "preserve_reasoning_fields": false,
+      "assistant_tool_content": "provider",
+      "byte_token_upper_bound_verified": false,
+      "output_billing_ceiling_verified": false
+    }
+  ],
+  "runs_sha256": "41b8de6916bbeb76ebe4e39193832322717b9b7ae3e90c07ce533e36faa29d01",
+  "runtime": {
+    "python": "3.12.9",
+    "packages": {
+      "numpy": "2.1.3",
+      "pandas": "2.2.3",
+      "scipy": "1.13.1",
+      "pyyaml": "6.0.2",
+      "matplotlib": "3.10.1"
+    }
+  },
+  "registration_status": "local_hash_only_not_external_preregistration"
+}

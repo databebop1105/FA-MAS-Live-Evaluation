@@ -4,13 +4,15 @@ Prepared 9 October 2026; status amended 22 October 2026. This document records
 the earlier two-provider protocol for provenance. It is superseded for new
 execution by `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`, which defines the
 active one-OpenAI-configuration protocol. Development-only provider
-compatibility calls have been performed, but no held-out model outcome has been
-collected and no configuration has qualified for a frozen study. Neither
-protocol is independently registered.
+compatibility calls have been performed under this earlier plan, but no
+held-out outcome was collected under it. The successor protocol completed its
+own development preflight and one frozen held-out execution; its execution
+record and results are in `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`.
+Neither protocol is independently registered.
 
 ## What changed
 
-The new runner lets a tool-calling model choose every operation from the initial task through completion or cleanup. It executes actual loopback HTTP calls into two separately implemented SQLite services. It replaces the former one-recovery-decision sandbox for this bounded study, while retaining the original unexecuted protocol as a separate historical plan. The manuscript must not report development-only outcomes as live-evaluation results; it may accurately state their pre-freeze status and must not say that no model calls were made.
+The new runner lets a tool-calling model choose every operation from the initial task through completion or cleanup. It executes actual loopback HTTP calls into two separately implemented SQLite services. It replaced the former one-recovery-decision sandbox for the successor bounded study, while retaining this original unexecuted protocol as a separate historical plan. The manuscript must distinguish this plan from the successor's completed live gate ablation and must not relabel either protocol as independently registered.
 
 The first service executes a sequence of three or four persistent writes with stable intent keys, authoritative status reads, partial outcomes, compensation, and replacement. The second service allocates inventory holds and captures or releases them under SKU and capacity invariants. It uses its own stock/hold schema and handler. Initial background stock usage is included in the independent inventory judge, so another customer's inventory does not become a controller error.
 

@@ -30,8 +30,8 @@ state is safe.
 
 | Priority | Reviewer risk | Evidence observed | Required disposition before submission |
 |---|---|---|---|
-| P0 | **Venue fit is incomplete.** The main manuscript reports no eligible closed-loop live-model outcome. | The current reported results are simulator and deterministic local-service studies. Development-only provider calls are not a frozen evaluation. | Run one successful, bounded live LLM configuration only after it passes the acceptance checks in the pivot plan. If this cannot be completed, remove the live-evaluation promise and reconsider this LLM-focused special issue. |
-| P0 | **The manuscript and documentation contain a now-false statement.** | The paper and several documents state that no live model calls have been made. Development-only calls were made; neither provider configuration qualified for the held-out study. | Replace that language everywhere. State that development-only compatibility checks occurred, no configuration passed all pre-freeze checks, and no held-out live outcome is reported. Do not conceal the failed preflight. |
+| P0 | **Venue fit remains narrow.** The artifact now has one closed-loop live-model result, but only on authored local services. | OpenAI GPT-6 Luna completed all 64 frozen trajectories after a passed development preflight. The task-success contrast is zero and both nonzero primary contrasts have 16-cluster intervals spanning zero. | Report this as one bounded gate ablation; do not imply model-family, vendor, benchmark, or production superiority. |
+| P1 | **Evidence labels must stay synchronized.** | The paper and artifact record the exact date, configuration, passed preflight, frozen-matrix completeness, and inconclusive audited result. | Recheck that wording against the lock, manifest, and analysis before final rendering and submission. Preserve development-only records as distinct evidence. |
 | P0 | **Artifact portability was broken.** | A fresh run on the current SQLite build rejected double-quoted string literals in `inventory_services.py`, causing seven tests to fail. | Corrected on this branch by using SQL string literals that are portable across SQLite builds. Require the full suite to pass in a fresh environment before freezing any study. |
 | P0 | **The no-gates condition is an ablation, not a competitive recovery system.** | It keeps the same controller and removes declared enforcement. A reduction in unauthorized effects can follow directly from the definition of the gate. | Call it a *gate ablation* throughout. Report its recovery, safe-termination, and false-blocking costs alongside blocked unsafe effects. Do not call it a broad recovery baseline. |
 | P0 | **Authorship and submission declarations are incomplete.** | The artifact has unconfirmed authorship, contribution, funding, conflict, licensing, and originality inputs. | Obtain author-by-author approval, contribution statements, ORCIDs, funding/compute disclosure, conflicts, rights, and prior/concurrent-work confirmation. Do not infer any of these from repository history. |
@@ -90,9 +90,9 @@ following are true:
 
 The inventory-service SQL now uses single-quoted string literals. The full
 52-test suite passes on Python 3.12 with the repository's local loopback
-services. The repository now also records a bounded model-free conformance
-check: 406 paired schedules (812 executions) exercise finite action proposals
-and six state-dependent witness traces; 105 FA-MAS blocks were recorded and no
-blocked proposal reached a service. This confirms implementation conformance
-under the declared local semantics only; it is not a live-model evaluation and
-does not change the manuscript's scientific claims.
+services. The repository records a bounded model-free conformance check: 406
+paired schedules (812 executions) exercise finite action proposals and six
+state-dependent witness traces; 105 FA-MAS blocks were recorded and no blocked
+proposal reached a service. It also records one frozen, complete 64-trajectory
+OpenAI GPT-6 Luna gate ablation. The latter adds model-in-the-loop evidence only
+within the declared local semantics; its cluster-level contrasts are inconclusive.

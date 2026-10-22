@@ -1,0 +1,9 @@
+service,policy,model_configuration_id,model_class,status,episodes
+inventory,fa_mas,openai_gpt_6_luna_chat_none,hosted,finished,13
+inventory,fa_mas,openai_gpt_6_luna_chat_none,hosted,turn_limit,3
+inventory,feature_matched,openai_gpt_6_luna_chat_none,hosted,finished,11
+inventory,feature_matched,openai_gpt_6_luna_chat_none,hosted,turn_limit,5
+workflow,fa_mas,openai_gpt_6_luna_chat_none,hosted,finished,15
+workflow,fa_mas,openai_gpt_6_luna_chat_none,hosted,turn_limit,1
+workflow,feature_matched,openai_gpt_6_luna_chat_none,hosted,finished,13
+workflow,feature_matched,openai_gpt_6_luna_chat_none,hosted,turn_limit,3

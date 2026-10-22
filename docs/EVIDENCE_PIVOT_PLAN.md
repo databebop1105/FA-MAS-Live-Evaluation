@@ -50,6 +50,10 @@ not translate bounded enumeration into “FA-MAS guarantees production safety.�
 
 ## Phase B - establish one valid LLM integration
 
+**Completed 22 October 2026:** OpenAI GPT-6 Luna passed all eight development
+trajectory checks through the declared generic dispatcher. The saved preflight
+report binds the result to the exact source and non-secret configuration.
+
 Use **one** named model-provider configuration. The only candidate is OpenAI
 GPT-6 Luna through Chat Completions with `reasoning_effort: "none"`, as defined
 in `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md`. Together/Qwen did not clear
@@ -79,6 +83,12 @@ adapter cannot serialize the continuation, that is a failed integration check,
 not a negative FA-MAS result.
 
 ## Phase C - frozen one-configuration gate ablation
+
+**Completed 22 October 2026:** the frozen OpenAI configuration completed all
+64 planned trajectories. Task success was unchanged; the acceptable-outcome
+and unsafe-outcome contrasts were each 3.125 points in FA-MAS's direction, with
+16-cluster intervals spanning zero. This is bounded, inconclusive evidence, not
+a claim of FA-MAS superiority.
 
 After Phase B passes, amend the protocol before execution to name a **single
 model-provider configuration** and retain the 32 development-disjoint authored
@@ -123,16 +133,10 @@ than adding more historical simulator detail.
 | Discussion | State that the no-gates arm is a gate ablation, the services/tasks are authored, and the study does not estimate real-world reliability. |
 | Reproducibility | Give the tagged artifact, environment, independent rerun status, and reproducibility limits. |
 
-Mandatory manuscript correction: replace “No live model calls have been made”
-with an accurate development-versus-held-out statement. Example:
-
-> Development-only provider compatibility checks were performed before protocol
-> freeze. They did not qualify an additional configuration for held-out
-> analysis; consequently, no outcome from those checks is reported as evidence.
-
-Use this only while it remains factually accurate. If a configuration later
-passes and the frozen matrix is run, replace it with the exact date, model
-configuration, protocol lock, and audited result status.
+Mandatory manuscript correction: report the 22 October 2026 OpenAI GPT-6 Luna
+configuration, passed development preflight, frozen protocol digest, 64 retained
+held-out trajectories, and the inconclusive audited contrasts. Do not describe
+the result as a provider comparison or a live-model superiority claim.
 
 ## Phase E - external scrutiny before submission
 
