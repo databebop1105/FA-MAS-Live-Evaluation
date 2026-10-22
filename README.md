@@ -16,6 +16,7 @@ multi-agent coordination.
 | `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md` | Development acceptance checks required before freezing the held-out run |
 | `docs/REVIEWER_RISK_AUDIT_2026-10-22.md` | Submission risks, evidence boundaries, and mandatory remediation |
 | `docs/EVIDENCE_PIVOT_PLAN.md` | The bounded one-configuration safety-envelope study required for a credible LLM case study |
+| `results/conformance_v1/REPORT.md` | Model-free bounded conformance evidence for the implemented contract gates |
 | `FA_MAS_Remaining_Priorities_Verification.md` | Evidence audit, limits, and work that remains outside the current artifact |
 | `SUBMISSION_READINESS.md` | Submission-facing status and author-controlled open items |
 
@@ -86,6 +87,25 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 See `results/local_services/REPORT.md` and the accompanying raw traces and
 manifest. The fault cases are constructed conformance examples; their counts
 are descriptive, not estimates of population failure rates.
+
+## Bounded contract conformance
+
+The model-free conformance suite enumerates finite schema-valid one-action
+proposals at empty local state for every authored workflow and inventory fault
+family. It also executes six fixed state-dependent witness traces. Each trace
+is paired between the feature-matched gate ablation and FA-MAS; the saved trace
+records the proposal, gate decision, dispatched action, service observation,
+and independently judged terminal state.
+
+```bash
+PYTHONPATH=src python -m fa_mas.conformance --output results/conformance_YYYYMMDD
+```
+
+The committed `results/conformance_v1` report records 406 paired schedules
+(812 executions), 105 FA-MAS gate blocks, and zero blocked proposals dispatched
+to a service. This supports a bounded implementation-conformance claim only; it
+is not a live-model evaluation, external benchmark, production-safety proof, or
+unbounded formal verification.
 
 ## Three-step service workflows
 

@@ -16,18 +16,26 @@ PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q
 PYTHONPATH=src .venv/bin/python scripts/verify_evidence.py
 .venv/bin/python scripts/external_service_study.py --output /tmp/fa_mas_external_replay
 PYTHONPATH=src .venv/bin/python -m fa_mas.bounded_e2e --mode validate
+PYTHONPATH=src .venv/bin/python -m fa_mas.conformance --output /tmp/fa_mas_conformance
 ```
 
 The recorded clean-install audit on this host used 29 hash-locked distributions
 and passed 44 tests; it also replayed the 52,500 historical, 18,000 initial
 matched, and 18,000 corrected simulator rows byte for byte. All 150 public-tool
 traces reproduced exactly and workflow/inventory verdicts were rejudged. The
-current source suite contains 49 tests, including later non-live runner and
+current source suite contains 51 tests, including later non-live runner and
 portability coverage. Reports are under `results/`. This remains same-host
 interpreter verification, not independent third-party replication or
 cross-platform bitwise portability.
 
 The pinned upstream business-tool subset is in `third_party/tau2`, with its own MIT license and source commit. Its orchestration-heavy parent initializers are bypassed by namespace loading; imported business and utility modules are unmodified. No public dataset conversation or official benchmark reward is executed.
+
+The bounded conformance command exercises finite, schema-valid one-action
+proposals at empty local state across the authored workflow and inventory fault
+families, plus six fixed state-dependent witness traces. It saves the complete
+proposal, gate, dispatch, service-observation, terminal-state, and digest
+records. The resulting report is model-free and bounded; it does not establish
+properties of arbitrary traces, models, or production services.
 
 The container recipe pins its Linux amd64 base image by digest and enforces wheel hashes. It has not been built: Docker is unavailable here. The dependency lock covers executable evaluation, not Word/LibreOffice manuscript rendering, which additionally needs python-docx and the official template.
 

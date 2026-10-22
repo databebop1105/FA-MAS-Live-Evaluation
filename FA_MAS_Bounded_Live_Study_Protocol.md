@@ -41,7 +41,7 @@ No controller receives automatic cleanup. A stopped episode with unresolved effe
 
 ## Verification already run
 
-- 49 unit tests pass across the full repository. They cover multi-step HTTP
+- 51 unit tests pass across the full repository. They cover multi-step HTTP
   execution, model-selected reconciliation and replacement, independent cleanup
   verdicts, SKU gates, capacity invariants, provider failures, shared prompts
   and schema, budgets, task separation, protocol hashing, live-only analysis,

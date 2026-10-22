@@ -30,16 +30,17 @@ artifact credible rather than merely available.
 **Deliverables**
 
 1. Keep the SQLite portability fix and record the final full-suite result.
-2. Add a bounded conformance enumerator that feeds every legal and selected
-   illegal action pattern into each service/fault family and records: proposed
+2. Completed: `fa_mas.conformance` enumerates finite schema-valid one-action
+   proposals at empty local state for every authored service/fault family,
+   together with six state-dependent witness traces. It records proposed
    action, gate decision, executed action, terminal state, and invariant
-   verdict.
+   verdict. The v1 report contains 406 paired schedules / 812 executions.
 3. Make the auditor independent of the controller's success flag. A controller
    declaration of completion must never create a successful result.
-4. Commit a generated, machine-readable conformance report and a concise table
-   for the paper: property, service, fault family, traces explored, violations
-   detected, violations executed by FA-MAS, and expected safety-preserving
-   blocks.
+4. Completed: the generated, machine-readable report is committed under
+   `results/conformance_v1`. The manuscript still needs a concise table:
+   property, service, fault family, traces explored, violations detected,
+   violations executed by FA-MAS, and expected safety-preserving blocks.
 
 **Paper wording**
 

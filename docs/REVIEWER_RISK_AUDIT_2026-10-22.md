@@ -44,7 +44,7 @@ state is safe.
 | P1 | **References and related-work claims remain high-risk.** | Several recent works are preprints and the manuscript itself says final citation verification remains required. | Verify every bibliographic record and every novelty/comparator claim against the primary publisher or official repository. Remove any unverified citation rather than relying on an AI-generated-looking reference list. |
 | P1 | **AI-use disclosure must be precise.** | The acknowledgement identifies ChatGPT and Codex but makes a broad all-sections statement. | Keep an acknowledgement that names each system, identifies the sections/code/figures affected, states its drafting or implementation role, and confirms human authors verified all scientific content. IEEE requires disclosure of AI-generated article content. |
 | P2 | **The paper is at 13 pages against a 14-page ceiling.** | A late method/result addition can cause overflow after template conversion. | Target 12.5-13 pages before final conversion. Use supplemental material for protocol detail, historical simulator tables, extended traces, and the complete evidence audit. |
-| P2 | **Artifact and manuscript counts drift.** | The manuscript says 44 tests; the current source suite has 49 tests. | Generate counts and test-status wording from a final reproducibility manifest. Do not hand-edit these figures in multiple places. |
+| P2 | **Artifact and manuscript counts drift.** | The manuscript says 44 tests; the current source suite has 51 tests. | Generate counts and test-status wording from a final reproducibility manifest. Do not hand-edit these figures in multiple places. |
 | P2 | **Release readiness is incomplete.** | No confirmed archival DOI, final license, built container, or release review. | Create a tagged, credential-free release after the final rerun. Add a clear license and archive only material that is legally redistributable. Keep secrets, raw provider payloads, and any protected evaluation material out of the public release. |
 
 ## Evidence that is already useful
@@ -89,6 +89,10 @@ following are true:
 ## Immediate remediation completed on this branch
 
 The inventory-service SQL now uses single-quoted string literals. The full
-49-test suite passes on Python 3.12 with the repository's local loopback
-services. This confirms the portability correction only; it is not a live-model
-evaluation and does not change the manuscript's scientific claims.
+51-test suite passes on Python 3.12 with the repository's local loopback
+services. The repository now also records a bounded model-free conformance
+check: 406 paired schedules (812 executions) exercise finite action proposals
+and six state-dependent witness traces; 105 FA-MAS blocks were recorded and no
+blocked proposal reached a service. This confirms implementation conformance
+under the declared local semantics only; it is not a live-model evaluation and
+does not change the manuscript's scientific claims.

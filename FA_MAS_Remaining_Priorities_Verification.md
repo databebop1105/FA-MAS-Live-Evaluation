@@ -13,7 +13,7 @@ October 2026. This is not acceptance certification.
   wheel hashes. The recorded clean-install audit passed 44 tests; 52,500
   historical simulator rows, both 18,000-row matched studies and all 150
   public-tool traces reproduce byte for byte. The current source suite contains
-  49 tests, including later non-live runner and portability coverage. This is
+  51 tests, including later non-live runner and portability coverage. This is
   same-host clean installation, not independent third-party replication.
 - Added 18 hypothetical power-planning scenarios. Reference approximations flag poor sensitivity to a two-percentage-point difference. Inputs are assumptions; this is not observed power or the exact planned live statistical test.
 - Updated the official-template manuscript, cover-letter draft, reproduction instructions and unconfirmed author-input form. The final PDF is 13 pages, within the checked 14-page ceiling; every page was visually inspected. This does not certify all final portal requirements.
