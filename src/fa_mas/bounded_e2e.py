@@ -64,6 +64,30 @@ def provider_error_detail(exc,api_key):
     prefix=f'[{code}] ' if isinstance(code,str) and re.fullmatch(r'[A-Za-z0-9_.:-]{1,64}',code) else ''
     return prefix+message
 
+def safe_response_shape(data):
+    """Summarize a provider response without retaining provider-generated text.
+
+    This is deliberately limited to fixed categories and booleans. It helps
+    diagnose a rejected tool response while ensuring that assistant content,
+    opaque reasoning, tool arguments, and provider-specific identifiers are
+    excluded from this diagnostic summary.
+    """
+    choices=data.get('choices') if isinstance(data,dict) else None
+    choice=choices[0] if isinstance(choices,list) and choices and isinstance(choices[0],dict) else {}
+    message=choice.get('message') if isinstance(choice.get('message'),dict) else {}
+    calls=message.get('tool_calls')
+    call_count=len(calls) if isinstance(calls,list) else 0
+    finish_reason=choice.get('finish_reason')
+    if finish_reason not in {'tool_calls','stop','length','content_filter'}:
+        finish_reason='other' if isinstance(finish_reason,str) else None
+    return {
+        'finish_reason':finish_reason,
+        'tool_call_count':min(call_count,9),
+        'assistant_content_present':isinstance(message.get('content'),str) and bool(message['content'].strip()),
+        'reasoning_fields_present':[field for field in ('reasoning','reasoning_content')
+                                  if isinstance(message.get(field),str) and bool(message[field])],
+    }
+
 def canonical(value): return json.dumps(value,sort_keys=True,separators=(',',':'))
 def digest(value): return hashlib.sha256(canonical(value).encode()).hexdigest()
 def token_total(meta):
@@ -92,9 +116,9 @@ class Budget:
 class LiveModel:
     is_live=True
     def __init__(self,spec,protocol,budget):
-        self.spec=spec; self.protocol=protocol; self.budget=budget; self.model_id=spec['model_id'];self.last_call={};self._assistant_history_extras={}
+        self.spec=spec; self.protocol=protocol; self.budget=budget; self.model_id=spec['model_id'];self.last_call={};self._assistant_history_extras={};self._assistant_history_content_present=False;self._assistant_history_content=None
     def choose(self,messages):
-        self.last_call={};self._assistant_history_extras={}
+        self.last_call={};self._assistant_history_extras={};self._assistant_history_content_present=False;self._assistant_history_content=None
         body={'model':self.model_id,'messages':messages,'tools':[TOOL],
               'tool_choice':{'type':'function','function':{'name':'execute_service_action'}},
               self.spec.get('output_token_parameter','max_tokens'):self.protocol['max_output_tokens']}
@@ -124,6 +148,7 @@ class LiveModel:
         usage=data.get('usage',{})
         if not isinstance(usage,dict):usage={}
         self.last_call={'attempted':True,'received_response':True,'response_id':data.get('id'),'response_model':data.get('model'),'usage':usage,
+                        'response_shape':safe_response_shape(data),
                         'wall_ms':round((time.perf_counter()-started)*1000,3)}
         self.budget.record(usage,self.spec)
         if data.get('model')!=self.spec.get('expected_response_model',self.model_id):
@@ -137,7 +162,11 @@ class LiveModel:
             action=json.loads(call['function']['arguments'])
         except (KeyError,IndexError,TypeError,ValueError): raise ProviderFailure('Malformed single-tool-call response') from None
         self.last_call['tool_call_id']=call['id']
-        if 'content' in message:self.last_call['assistant_content']=message['content']
+        # Assistant content can be necessary for the next provider request, but
+        # may contain free text. Keep it in transient in-memory state only.
+        if 'content' in message:
+            self._assistant_history_content_present=True
+            self._assistant_history_content=message['content']
         # Some reasoning-model providers require their own opaque reasoning
         # field to be replayed with the assistant tool call on the next turn.
         # Keep it transient: it forms only the next request and is deliberately
@@ -313,7 +342,8 @@ def run_episode(base,task,policy,model,protocol):
                'executed_action':executed_action,'observation':observation,'model':meta};events.append(event)
         call_id=meta.get('tool_call_id',f'turn-{turn}')
         assistant={'role':'assistant','tool_calls':[{'id':call_id,'type':'function','function':{'name':'execute_service_action','arguments':canonical(action)}}]}
-        if 'assistant_content' in meta:assistant['content']=meta['assistant_content']
+        if getattr(model,'_assistant_history_content_present',False):
+            assistant['content']=model._assistant_history_content
         assistant.update(getattr(model,'_assistant_history_extras',{}))
         messages.append(assistant)
         messages.append({'role':'tool','tool_call_id':call_id,'content':canonical(observation)})

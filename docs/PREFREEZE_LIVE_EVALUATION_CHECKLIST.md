@@ -21,6 +21,11 @@ does not authorize a held-out run by itself.
 - [ ] Development failure records retain only a bounded, scrubbed provider error
   code/message. Never retain authorization headers, API keys, or raw provider
   response bodies in files that could be shared.
+- [ ] For a rejected model response, retain only a safe response shape: a
+  recognized finish category, bounded tool-call count, content-present flag,
+  and names (not values) of supported reasoning fields. The response-shape
+  summary must exclude assistant text, tool arguments, opaque reasoning, and
+  provider response identifiers.
 - [ ] If a provider requires its prior assistant reasoning fields for a
   tool-result continuation, verify that forwarding is opt-in, transient, and
   absent from saved traces and result records.

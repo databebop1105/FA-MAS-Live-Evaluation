@@ -13,6 +13,16 @@ def diagnostic(service='workflow',fault='clean'):
     return {'task_id':'diagnostic','split':'development','service':service,'fault':fault,'length':3,'requested_sku':'sku-A','capacity':2,'variant':0}
 
 class BoundedTests(unittest.TestCase):
+    def test_safe_response_shape_has_no_provider_generated_text(self):
+        marker='private reasoning that must not be recorded'
+        shape=bounded_e2e.safe_response_shape({'choices':[{'finish_reason':'tool_calls','message':{
+            'content':'untrusted free text', 'reasoning':marker,
+            'tool_calls':[{'id':'one'},{'id':'two'}]}}]})
+        self.assertEqual(shape,{'finish_reason':'tool_calls','tool_call_count':2,
+                                'assistant_content_present':True,'reasoning_fields_present':['reasoning']})
+        self.assertNotIn(marker,json.dumps(shape))
+        self.assertNotIn('untrusted free text',json.dumps(shape))
+
     def test_provider_error_detail_is_bounded_and_redacts_credentials(self):
         key='key_private_test_value'
         body=json.dumps({'error':{'code':'insufficient_tier','message':f'authorization Bearer {key}; api_key={key}'}}).encode()
@@ -194,6 +204,11 @@ class BoundedTests(unittest.TestCase):
         self.assertIsNone(received[1][0]['messages'][-2]['content'])
         self.assertEqual(received[1][0]['messages'][-2]['reasoning'],'opaque test rationale')
         self.assertNotIn('reasoning',row['events'][0]['model'])
+        self.assertNotIn('assistant_content',row['events'][0]['model'])
+        self.assertEqual(row['events'][0]['model']['response_shape'],
+                         {'finish_reason':None,'tool_call_count':1,
+                          'assistant_content_present':False,'reasoning_fields_present':['reasoning']})
+        self.assertNotIn('opaque test rationale',json.dumps(row['events']))
     def test_lock_changes_if_any_service_code_or_access_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);access=p/'access.json';access.write_text('{"diagnostic":1}')
