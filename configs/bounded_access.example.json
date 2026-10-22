@@ -1,6 +1,6 @@
 {
   "models": [
-    {"class":"hosted","model_id":"REPLACE_WITH_EXACT_HOSTED_SNAPSHOT","base_url":"https://REPLACE_HOST/v1","api_key_env":"HOSTED_API_KEY","input_usd_per_million":-1,"output_usd_per_million":-1,"output_token_parameter":"max_completion_tokens","temperature":0.0,"request_options":{},"preserve_reasoning_fields":false,"byte_token_upper_bound_verified":false,"output_billing_ceiling_verified":false},
-    {"class":"open_weight","model_id":"REPLACE_WITH_OPEN_WEIGHT_MODEL_AND_REVISION","base_url":"http://127.0.0.1:8000/v1","api_key_env":"OPEN_WEIGHT_API_KEY","input_usd_per_million":0,"output_usd_per_million":0,"output_token_parameter":"max_tokens","temperature":0.0,"request_options":{},"preserve_reasoning_fields":false,"byte_token_upper_bound_verified":false,"output_billing_ceiling_verified":false}
+    {"class":"hosted","model_id":"REPLACE_WITH_EXACT_HOSTED_SNAPSHOT","base_url":"https://REPLACE_HOST/v1","api_key_env":"HOSTED_API_KEY","input_usd_per_million":-1,"output_usd_per_million":-1,"output_token_parameter":"max_completion_tokens","temperature":0.0,"request_options":{},"preserve_reasoning_fields":false,"assistant_tool_content":"provider","byte_token_upper_bound_verified":false,"output_billing_ceiling_verified":false},
+    {"class":"open_weight","model_id":"REPLACE_WITH_OPEN_WEIGHT_MODEL_AND_REVISION","base_url":"http://127.0.0.1:8000/v1","api_key_env":"OPEN_WEIGHT_API_KEY","input_usd_per_million":0,"output_usd_per_million":0,"output_token_parameter":"max_tokens","temperature":0.0,"request_options":{},"preserve_reasoning_fields":false,"assistant_tool_content":"provider","byte_token_upper_bound_verified":false,"output_billing_ceiling_verified":false}
   ]
 }

@@ -164,7 +164,12 @@ class LiveModel:
         self.last_call['tool_call_id']=call['id']
         # Assistant content can be necessary for the next provider request, but
         # may contain free text. Keep it in transient in-memory state only.
-        if 'content' in message:
+        # Some provider examples require an explicit empty string alongside a
+        # tool call; that is a wire-format setting, not model-generated text.
+        if self.spec.get('assistant_tool_content','provider')=='empty_string':
+            self._assistant_history_content_present=True
+            self._assistant_history_content=''
+        elif 'content' in message:
             self._assistant_history_content_present=True
             self._assistant_history_content=message['content']
         # Some reasoning-model providers require their own opaque reasoning
@@ -382,6 +387,8 @@ def validate_access(access,require_credentials=False,require_confirmatory_guaran
             raise ValueError('temperature must be a finite non-negative number or null to omit it')
         if 'preserve_reasoning_fields' in m and type(m['preserve_reasoning_fields']) is not bool:
             raise ValueError('preserve_reasoning_fields must be boolean when supplied')
+        if m.get('assistant_tool_content','provider') not in ('provider','empty_string'):
+            raise ValueError('assistant_tool_content must be provider or empty_string')
         options=m.get('request_options',{})
         if not isinstance(options,dict):raise ValueError('Request options must be an object')
         if set(options)-{'reasoning_effort','parallel_tool_calls'}:raise ValueError('Unsupported request option')
@@ -393,7 +400,7 @@ def validate_access(access,require_credentials=False,require_confirmatory_guaran
 def public_model_spec(model):
     """Return the frozen, non-secret fields that identify a live configuration."""
     fields=('class','model_id','expected_response_model','base_url','input_usd_per_million',
-            'output_usd_per_million','output_token_parameter','temperature','request_options','preserve_reasoning_fields',
+            'output_usd_per_million','output_token_parameter','temperature','request_options','preserve_reasoning_fields','assistant_tool_content',
             'byte_token_upper_bound_verified','output_billing_ceiling_verified')
     return {field:model[field] for field in fields if field in model}
 
