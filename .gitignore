@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-configs/bounded_access.local.json
+configs/*.local.json
 
 # Local Python/tooling state
 .venv/

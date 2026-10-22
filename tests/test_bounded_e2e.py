@@ -7,6 +7,7 @@ from fa_mas import bounded_e2e
 from fa_mas.bounded_e2e import (ROOT, Episode, Budget, BudgetStop, LiveModel, ProviderFailure,
     ScriptedModel, SYSTEM, TOOL, services, make_action as a, run_episode, load_tasks, validate_access, freeze_hash, public_model_spec)
 from fa_mas.bounded_analysis import analyze
+from fa_mas.preflight import review as review_preflight
 
 P=json.loads((ROOT/'configs/bounded_e2e_v1.json').read_text())
 def diagnostic(service='workflow',fault='clean'):
@@ -169,6 +170,51 @@ class BoundedTests(unittest.TestCase):
         open_weight=next(body for body in received if body['model']=='open-development-mock')
         self.assertNotIn('temperature',hosted);self.assertEqual(hosted['reasoning_effort'],'none')
         self.assertEqual(open_weight['temperature'],0);self.assertFalse(open_weight['parallel_tool_calls'])
+    def test_single_openai_configuration_requires_a_passed_preflight_before_freeze(self):
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_POST(self):
+                body=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+                task=json.loads(body['messages'][1]['content']);turn=sum(m['role']=='tool' for m in body['messages'])
+                if task['catalog']['service']=='workflow':
+                    actions=[a('invoke',step) for step in task['catalog']['steps']]+[a('finish')]
+                else:
+                    actions=[a('hold'),a('capture'),a('finish')]
+                action=actions[min(turn,len(actions)-1)]
+                payload=json.dumps({'id':'openai-single-mock-'+str(turn),'model':body['model'],
+                    'usage':{'prompt_tokens':40,'completion_tokens':20},
+                    'choices':[{'message':{'content':None,'tool_calls':[{'id':'call-'+str(turn),'type':'function','function':{'name':'execute_service_action','arguments':json.dumps(action)}}]}}]}).encode()
+                self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,kwargs={'poll_interval':.02},daemon=True);thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);protocol=path/'protocol.json';tasks=path/'tasks.jsonl';access=path/'access.json';development=path/'development';live=path/'live';report=development/'preflight_report.json'
+                protocol.write_text((ROOT/'configs/openai_single_e2e_v1.json').read_text());tasks.write_text((ROOT/'configs/bounded_tasks_v1.jsonl').read_text())
+                config=json.loads((ROOT/'configs/openai_luna_preflight.json').read_text())
+                model=config['models'][0];model['base_url']=f'http://127.0.0.1:{server.server_address[1]}/v1';model['input_usd_per_million']=0;model['output_usd_per_million']=0
+                access.write_text(json.dumps(config))
+                argv=['bounded_e2e','--mode','development','--protocol',str(protocol),'--tasks',str(tasks),'--access',str(access),'--approve-spend-usd','1','--output',str(development)]
+                with patch.object(sys,'argv',argv):bounded_e2e.main()
+                manifest=development/'development_live_manifest.json';runs=development/'development_live_runs.jsonl'
+                checked=review_preflight(protocol,tasks,access,runs,manifest,report)
+                self.assertEqual(checked['status'],'passed')
+                self.assertEqual((checked['planned_episodes'],checked['observed_episodes']),(8,8))
+                argv=['bounded_e2e','--mode','freeze','--protocol',str(protocol),'--tasks',str(tasks),'--access',str(access)]
+                with patch.object(sys,'argv',argv):
+                    with self.assertRaises(ValueError):bounded_e2e.main()
+                malformed=dict(checked);malformed['observed_episodes']=7;bad_report=development/'malformed_preflight_report.json';bad_report.write_text(json.dumps(malformed))
+                argv.extend(['--preflight-report',str(bad_report)])
+                with patch.object(sys,'argv',argv):
+                    with self.assertRaises(ValueError):bounded_e2e.main()
+                argv=argv[:-2]
+                argv.extend(['--preflight-report',str(report)])
+                with patch.object(sys,'argv',argv):bounded_e2e.main()
+                lock=protocol.with_name(protocol.stem+'_lock.json');self.assertTrue(lock.exists())
+                argv=['bounded_e2e','--mode','live','--protocol',str(protocol),'--tasks',str(tasks),'--access',str(access),'--approve-spend-usd','1','--output',str(live)]
+                with patch.object(sys,'argv',argv):bounded_e2e.main()
+                result=analyze(live/'live_runs.jsonl',live/'live_manifest.json',tasks,path/'analysis')
+                self.assertEqual(result,{'rows':64,'clusters':16,'evidence_class':'live_e2e_local_services'})
+        finally:server.shutdown();server.server_close();thread.join()
     def test_non_live_analysis_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'m.json').write_text('{"evidence_class":"ci_non_live"}')

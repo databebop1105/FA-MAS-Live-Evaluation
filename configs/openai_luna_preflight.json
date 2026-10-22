@@ -1,0 +1,25 @@
+{
+  "models": [
+    {
+      "configuration_id": "openai_gpt_6_luna_chat_none",
+      "provider": "OpenAI",
+      "class": "hosted",
+      "model_id": "gpt-6-luna",
+      "expected_response_model": "gpt-6-luna",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "FA_MAS_OPENAI_API_KEY",
+      "input_usd_per_million": 0.1,
+      "output_usd_per_million": 0.5,
+      "output_token_parameter": "max_completion_tokens",
+      "temperature": 0.0,
+      "request_options": {
+        "reasoning_effort": "none",
+        "parallel_tool_calls": false
+      },
+      "preserve_reasoning_fields": false,
+      "assistant_tool_content": "provider",
+      "byte_token_upper_bound_verified": false,
+      "output_billing_ceiling_verified": false
+    }
+  ]
+}

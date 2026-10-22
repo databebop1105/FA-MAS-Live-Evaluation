@@ -8,7 +8,7 @@ Status: strengthened research draft; not certified ready for submission.
 | Compensation superiority | Unresolved; corrected confidence interval crosses zero |
 | Distinct public implementations | 150 direct-tool checks, pinned retail and airline code; no model benchmark claim |
 | Bounded contract conformance | 406 paired schedules / 812 executions across authored fault families; 105 FA-MAS gate blocks and zero blocked proposals dispatched. Model-free and bounded. |
-| Clean dependency installation | Recorded audit: 29 hash-locked distributions and 44 tests; current source suite: 51 tests; recorded simulator/public-tool traces replay |
+| Clean dependency installation | Recorded audit: 29 hash-locked distributions and 44 tests; current source suite: 52 tests; recorded simulator/public-tool traces replay |
 | Official IEEE template / page ceiling | Final PDF 13 pages; all pages inspected; under checked 14-page ceiling |
 | Live end-to-end comparison | Development-only compatibility calls were made but did not qualify a configuration for held-out analysis; no confirmatory outcome exists. A frozen single-configuration case study remains conditional on all pre-freeze checks. |
 | Small-effect power / generalization | Hypothetical planning supplied; inadequate evidence for modest-effect power or population claims |

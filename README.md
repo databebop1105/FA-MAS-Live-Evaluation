@@ -143,12 +143,13 @@ placing the official template in `official_template/`.
 
 ## Bounded end-to-end model study
 
-The new `fa_mas.bounded_e2e` runner exposes both service implementations to a
-multi-turn tool-using model. It compares a feature-matched controller with
-FA-MAS contract enforcement on 32 held-out task instances, with shared budgets,
-independent state judges, provider-failure retention, and source/configuration
-locking. This evaluates one model controller at a time, not multi-agent
-coordination. The protocol is locally prepared, not externally registered.
+The active study uses one named configuration: **OpenAI GPT-6 Luna through Chat
+Completions with `reasoning_effort: "none"`**. It compares a feature-matched
+controller with FA-MAS contract enforcement on 32 held-out task instances, with
+shared budgets, independent state judges, provider-failure retention, and
+source/configuration locking. This evaluates one model controller at a time,
+not multi-agent coordination. The protocol is locally prepared, not externally
+registered.
 
 Start with the two non-live checks:
 
@@ -159,25 +160,27 @@ PYTHONPATH=src python -m fa_mas.bounded_e2e --mode ci --output results/bounded_e
 
 Development-only provider compatibility checks have been attempted locally.
 They are excluded from all confirmatory analysis, and no held-out live outcome
-is committed in this repository. A configuration must pass every pre-freeze
-check before any frozen run is authorized. If a fresh, permitted development
-check is needed, use only the four development fixtures:
+is committed in this repository. The OpenAI candidate must pass the reviewed
+development preflight before any frozen run is authorized:
 
 ```bash
+FA_MAS_OPENAI_API_KEY="$(security find-generic-password -a "$USER" -s "FA-MAS-OPENAI-EVAL" -w)" \
 PYTHONPATH=src python -m fa_mas.bounded_e2e --mode development \
-  --access configs/bounded_access.local.json \
-  --approve-spend-usd DEVELOPMENT_USD \
-  --output results/bounded_e2e/development_YYYYMMDD
+  --protocol configs/openai_single_e2e_v1.json \
+  --access configs/openai_luna_preflight.json \
+  --approve-spend-usd 1 \
+  --output results/openai_luna/development_YYYYMMDD
 ```
 
-That mode produces 16 policy/configuration episodes under a 192-call cap. Its
-rows are intentionally excluded from confirmatory analysis. After every
-pre-freeze check passes, create a reviewed, credential-free
-`configs/bounded_access.frozen.json`, set the verification flags to `true`, and
-freeze that exact configuration before the one confirmatory matrix run.
+That mode produces eight policy/configuration episodes under a 96-call cap. Its
+rows are intentionally excluded from confirmatory analysis. A passed
+machine-readable preflight report is required before the 64-trajectory matrix
+can freeze and run.
 
-See `FA_MAS_Bounded_Live_Study_Protocol.md` for exact launch commands, model
-access settings, billing verification, bounds, and interpretation limits.
+See `docs/OPENAI_SINGLE_CONFIGURATION_PROTOCOL.md` for the exact launch
+commands, model settings, preflight gate, cost ceilings, and interpretation
+limits. `FA_MAS_Bounded_Live_Study_Protocol.md` retains the earlier two-provider
+plan for provenance only.
 Before adding credentials or freezing a live run, complete
 `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
 endpoint acceptance checks from the held-out execution.

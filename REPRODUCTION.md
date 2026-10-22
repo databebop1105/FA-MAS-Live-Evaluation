@@ -23,7 +23,7 @@ The recorded clean-install audit on this host used 29 hash-locked distributions
 and passed 44 tests; it also replayed the 52,500 historical, 18,000 initial
 matched, and 18,000 corrected simulator rows byte for byte. All 150 public-tool
 traces reproduced exactly and workflow/inventory verdicts were rejudged. The
-current source suite contains 51 tests, including later non-live runner and
+current source suite contains 52 tests, including later non-live runner and
 portability coverage. Reports are under `results/`. This remains same-host
 interpreter verification, not independent third-party replication or
 cross-platform bitwise portability.

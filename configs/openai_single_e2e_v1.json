@@ -1,0 +1,37 @@
+{
+  "protocol_version": "bounded-e2e-openai-single-v1",
+  "evidence_scope": "one named OpenAI model-provider configuration operating authored local HTTP/SQLite services; not production-service evidence or a multi-agent coordination study",
+  "policies": [
+    "feature_matched",
+    "fa_mas"
+  ],
+  "model_configurations": [
+    "hosted"
+  ],
+  "require_preflight_report": true,
+  "temperature": 0.0,
+  "max_turns": 12,
+  "max_tool_calls": 12,
+  "max_prompt_bytes": 16000,
+  "max_output_tokens": 512,
+  "provider_timeout_seconds": 45,
+  "episode_deadline_seconds": 600,
+  "maximum_development_episodes": 8,
+  "maximum_development_model_calls": 96,
+  "maximum_confirmatory_episodes": 64,
+  "maximum_confirmatory_model_calls": 768,
+  "seed": 20261022,
+  "primary_contrast": "FA-MAS minus feature-matched within the named OpenAI configuration",
+  "primary_outcomes": [
+    "task_success",
+    "acceptable_outcome",
+    "unsafe_outcome"
+  ],
+  "analysis_unit": "paired task-policy trajectory within the named model-provider configuration",
+  "uncertainty": "cluster-resampled descriptive intervals by authored service-fault family; 16 authored clusters",
+  "multiplicity": "Holm across three supplementary exact cluster-sign randomization tests; conditional on cluster exchangeability",
+  "stopping_rule": "retain every launched episode, including provider failures; stop before next episode if global call/token/budget limit is reached or after 3 consecutive provider failures",
+  "exclusions": "none after launch; do not rerun failures or budget stops in the confirmatory set",
+  "held_out_rule": "CI and development diagnostics use development tasks only; a passed preflight report and exact source/configuration lock are required before confirmatory execution",
+  "registration_status": "local protocol prepared; not independently preregistered"
+}
