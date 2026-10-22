@@ -21,6 +21,9 @@ does not authorize a held-out run by itself.
 - [ ] Development failure records retain only a bounded, scrubbed provider error
   code/message. Never retain authorization headers, API keys, or raw provider
   response bodies in files that could be shared.
+- [ ] If a provider requires its prior assistant reasoning fields for a
+  tool-result continuation, verify that forwarding is opt-in, transient, and
+  absent from saved traces and result records.
 - [ ] The 512-token output limit is retained only if both configurations
   produce valid actions. Any limit or reasoning-setting change is a dated
   protocol amendment made before freezing.

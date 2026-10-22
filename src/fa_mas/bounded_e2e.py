@@ -92,9 +92,9 @@ class Budget:
 class LiveModel:
     is_live=True
     def __init__(self,spec,protocol,budget):
-        self.spec=spec; self.protocol=protocol; self.budget=budget; self.model_id=spec['model_id'];self.last_call={}
+        self.spec=spec; self.protocol=protocol; self.budget=budget; self.model_id=spec['model_id'];self.last_call={};self._assistant_history_extras={}
     def choose(self,messages):
-        self.last_call={}
+        self.last_call={};self._assistant_history_extras={}
         body={'model':self.model_id,'messages':messages,'tools':[TOOL],
               'tool_choice':{'type':'function','function':{'name':'execute_service_action'}},
               self.spec.get('output_token_parameter','max_tokens'):self.protocol['max_output_tokens']}
@@ -138,6 +138,12 @@ class LiveModel:
         except (KeyError,IndexError,TypeError,ValueError): raise ProviderFailure('Malformed single-tool-call response') from None
         self.last_call['tool_call_id']=call['id']
         if 'content' in message:self.last_call['assistant_content']=message['content']
+        # Some reasoning-model providers require their own opaque reasoning
+        # field to be replayed with the assistant tool call on the next turn.
+        # Keep it transient: it forms only the next request and is deliberately
+        # excluded from trace/result records.
+        if self.spec.get('preserve_reasoning_fields',False):
+            self._assistant_history_extras={field:message[field] for field in ('reasoning','reasoning_content') if isinstance(message.get(field),str)}
         return action,self.last_call
 
 class ScriptedModel:
@@ -308,6 +314,7 @@ def run_episode(base,task,policy,model,protocol):
         call_id=meta.get('tool_call_id',f'turn-{turn}')
         assistant={'role':'assistant','tool_calls':[{'id':call_id,'type':'function','function':{'name':'execute_service_action','arguments':canonical(action)}}]}
         if 'assistant_content' in meta:assistant['content']=meta['assistant_content']
+        assistant.update(getattr(model,'_assistant_history_extras',{}))
         messages.append(assistant)
         messages.append({'role':'tool','tool_call_id':call_id,'content':canonical(observation)})
         if episode.finished:status='finished';break
@@ -343,6 +350,8 @@ def validate_access(access,require_credentials=False,require_confirmatory_guaran
         if m.get('output_token_parameter','max_tokens') not in ('max_tokens','max_completion_tokens'):raise ValueError('Unsupported output token parameter')
         if 'temperature' in m and m['temperature'] is not None and (type(m['temperature']) not in (int,float) or not math.isfinite(m['temperature']) or m['temperature']<0):
             raise ValueError('temperature must be a finite non-negative number or null to omit it')
+        if 'preserve_reasoning_fields' in m and type(m['preserve_reasoning_fields']) is not bool:
+            raise ValueError('preserve_reasoning_fields must be boolean when supplied')
         options=m.get('request_options',{})
         if not isinstance(options,dict):raise ValueError('Request options must be an object')
         if set(options)-{'reasoning_effort','parallel_tool_calls'}:raise ValueError('Unsupported request option')
@@ -354,7 +363,7 @@ def validate_access(access,require_credentials=False,require_confirmatory_guaran
 def public_model_spec(model):
     """Return the frozen, non-secret fields that identify a live configuration."""
     fields=('class','model_id','expected_response_model','base_url','input_usd_per_million',
-            'output_usd_per_million','output_token_parameter','temperature','request_options',
+            'output_usd_per_million','output_token_parameter','temperature','request_options','preserve_reasoning_fields',
             'byte_token_upper_bound_verified','output_billing_ceiling_verified')
     return {field:model[field] for field in fields if field in model}
 
