@@ -156,5 +156,8 @@ access settings, billing verification, bounds, and interpretation limits.
 Before adding credentials or freezing a live run, complete
 `docs/PREFREEZE_LIVE_EVALUATION_CHECKLIST.md`; it separates development-only
 endpoint acceptance checks from the held-out execution.
+Provider-specific assistant tool-call continuation formatting is a declared,
+tested access setting; it must not be inferred from or written into saved model
+traces.
 No live end-to-end outcomes are committed in this repository or reported as
 confirmatory evidence.

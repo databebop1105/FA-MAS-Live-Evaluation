@@ -29,6 +29,10 @@ does not authorize a held-out run by itself.
 - [ ] If a provider requires its prior assistant reasoning fields for a
   tool-result continuation, verify that forwarding is opt-in, transient, and
   absent from saved traces and result records.
+- [ ] Match each provider's documented assistant tool-call continuation
+  serialization, including whether an explicit empty `content` field is
+  required. Record that wire-format choice in the credential-free access
+  configuration and test it without retaining provider-generated text.
 - [ ] The 512-token output limit is retained only if both configurations
   produce valid actions. Any limit or reasoning-setting change is a dated
   protocol amendment made before freezing.
