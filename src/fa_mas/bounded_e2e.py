@@ -43,11 +43,14 @@ def provider_error_detail(exc,api_key):
     headers or the raw response body, and it removes the configured key plus
     common authorization-token forms before truncating the result.
     """
+    content_type=exc.headers.get_content_type() if exc.headers else None
+    if not isinstance(content_type,str) or not re.fullmatch(r'[A-Za-z0-9.+-]{1,80}/[A-Za-z0-9.+-]{1,80}',content_type):
+        content_type='unknown'
     try: raw=exc.read(2049)
     except (OSError,ValueError): return 'error body unavailable'
     if not raw:return 'error body unavailable'
     try: data=json.loads(raw[:2048].decode('utf-8','replace'))
-    except (UnicodeDecodeError,json.JSONDecodeError): return 'unparseable provider error'
+    except (UnicodeDecodeError,json.JSONDecodeError): return f'non-JSON provider error ({content_type})'
     error=data.get('error',data) if isinstance(data,dict) else {}
     if not isinstance(error,dict):return 'provider did not supply a structured error'
     message=error.get('message')
@@ -106,7 +109,7 @@ class LiveModel:
         if len(payload)>self.protocol['max_prompt_bytes']: raise BudgetStop('Prompt byte ceiling reached')
         self.budget.reserve(self.spec,self.protocol)
         self.last_call={'attempted':True,'received_response':False,'usage':{}}
-        headers={'Content-Type':'application/json'}
+        headers={'Accept':'application/json','Content-Type':'application/json','User-Agent':'FA-MAS-Live-Evaluation/1.0'}
         key=os.environ.get(self.spec['api_key_env'],'')
         if key:headers['Authorization']='Bearer '+key
         path=self.spec['base_url'].rstrip('/')+'/chat/completions'
